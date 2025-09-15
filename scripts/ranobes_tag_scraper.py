@@ -7,8 +7,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-# gpt q fez essa bomba kkkj. O resto fui eu, juro.
-
 def scrape_tags():
     # Set up the WebDriver
     driver = webdriver.Chrome()  # You can use other drivers like Firefox too

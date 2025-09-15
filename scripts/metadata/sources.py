@@ -91,7 +91,7 @@ class MetadataSource(ABC):
         Returns:
             str: formatted html
         """
-        nh3_tags = nh3.ALLOWED_TAGS
+        nh3_tags = nh3.ALLOWED_TAGS - {'div', 'br', 'strong'}
         html = nh3.clean(html, tags=nh3_tags)
 
         soup = BeautifulSoup(html, "html.parser")
@@ -245,6 +245,7 @@ class NovelUpdatesSource(MetadataSource):
             novel_tags = driver.find_elements(By.CSS_SELECTOR, "div#showtags a")
             novel_status = driver.find_element(By.CSS_SELECTOR, "div#showtranslated").text.strip()
             novel_status = "ON_GOING" if novel_status == "No" else "COMPLETED"
+            novel_alias = driver.find_element(By.CSS_SELECTOR, "div#editassociated").text.strip().replace("\n", ' ')
 
             meta_data.update(
                 {
@@ -254,6 +255,7 @@ class NovelUpdatesSource(MetadataSource):
                     "description": self.clean_html(novel_description),
                     "genres": [genre.text.lower().strip() for genre in novel_genres],
                     "tags": [tag.text.lower().strip() for tag in novel_tags],
+                    "alias": novel_alias,
                 }
             )
 

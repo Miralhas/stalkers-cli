@@ -10,6 +10,8 @@ from slugify import slugify
 
 logging.basicConfig(level=logging.INFO)
 
+ALLOWED_TAGS = nh3.ALLOWED_TAGS - {'div', 'br', 'strong'}
+
 # text to remove if it is present in the html
 BLACKLIST_TEXT = [
     "ads",
@@ -47,6 +49,7 @@ HTML_TAGS_SAFELIST = [
     "sup",
     "u",
     "ul",
+    "div"
 ]
 
 BLACKLIST_SET = set(text.lower() for text in BLACKLIST_TEXT)
@@ -125,24 +128,24 @@ def update_chapter_body(extracted: Dict, chapter_data: Dict) -> None:
 def clean_chapter_body(html: str, chapter_title: str) -> str:
     """Sanitize and remove unwanted tags from the provided html."""
     
-    tags = nh3.ALLOWED_TAGS
+    tags = ALLOWED_TAGS
     clean_html = nh3.clean(html, tags=tags)
 
     soup = BeautifulSoup(clean_html, "html.parser")
 
     # remove links
     for tag in soup.find_all():
-        if tag.name not in HTML_TAGS_SAFELIST:
-            tag.decompose()
+        # if tag.name not in HTML_TAGS_SAFELIST:
+        #     tag.decompose()
 
         if tag.name == "p":
             p_text = tag.get_text(strip=True).lower()
             if any(bad_text in p_text for bad_text in BLACKLIST_SET):
                 tag.decompose()
 
-            # Some novels have the chapter title in a <p> tag. If so, then remove it.
-            if p_text == chapter_title.lower().strip():
-                tag.decompose()
+            # # Some novels have the chapter title in a <p> tag. If so, then remove it.
+            # if p_text == chapter_title.lower().strip():
+            #     tag.decompose()
 
     final_html = str(soup)
 
@@ -194,3 +197,4 @@ def execute(root: str):
 
 if __name__ == "__main__":
     execute("C:/Users/bob/Desktop/NovelOutput/OutsideOfTime/800")
+

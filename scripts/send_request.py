@@ -1,10 +1,11 @@
 import json
 import os
+import time
 from pathlib import Path
 from typing import Dict
 
 import requests
-from dotenv import load_dotenv, dotenv_values
+from dotenv import dotenv_values, load_dotenv
 from rich import print
 
 load_dotenv()
@@ -45,8 +46,13 @@ def post_novel(novel_path: Path) -> requests.Response:
     }
 
     print(f"Sending novel POST request to '{url}'")
+
+    start = time.time()
     r = requests.post(url, headers=headers, data=json.dumps(data), timeout=30)
+    end = time.time()
     
+    length = end - start
+    print(f"Post REQUEST took: {length:.2f} seconds")
     return r
 
 
@@ -79,7 +85,7 @@ def post_novel_chapters(novel_path: Path, novel_slug: str):
 
     print(f"Sending novel POST request to '{url}'")
     r = requests.post(url, headers=headers, data=json.dumps(data), timeout=30)
-    
+
     return r
 
 

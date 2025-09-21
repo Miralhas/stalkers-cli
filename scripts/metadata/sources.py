@@ -91,7 +91,7 @@ class MetadataSource(ABC):
         Returns:
             str: formatted html
         """
-        nh3_tags = nh3.ALLOWED_TAGS - {'div', 'br', 'strong'}
+        nh3_tags = nh3.ALLOWED_TAGS - {'div', 'strong'}
         html = nh3.clean(html, tags=nh3_tags)
 
         soup = BeautifulSoup(html, "html.parser")

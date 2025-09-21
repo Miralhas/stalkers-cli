@@ -10,7 +10,7 @@ from slugify import slugify
 
 logging.basicConfig(level=logging.INFO)
 
-ALLOWED_TAGS = nh3.ALLOWED_TAGS - {'div', 'br', 'strong'}
+ALLOWED_TAGS = nh3.ALLOWED_TAGS - {'div', 'strong'}
 
 # text to remove if it is present in the html
 BLACKLIST_TEXT = [
@@ -133,19 +133,21 @@ def clean_chapter_body(html: str, chapter_title: str) -> str:
 
     soup = BeautifulSoup(clean_html, "html.parser")
 
-    # remove links
+ 
     for tag in soup.find_all():
-        # if tag.name not in HTML_TAGS_SAFELIST:
-        #     tag.decompose()
-
         if tag.name == "p":
             p_text = tag.get_text(strip=True).lower()
             if any(bad_text in p_text for bad_text in BLACKLIST_SET):
                 tag.decompose()
 
-            # # Some novels have the chapter title in a <p> tag. If so, then remove it.
-            # if p_text == chapter_title.lower().strip():
-            #     tag.decompose()
+            # Some novels have the chapter title in a <p> tag. If so, then remove it.
+            if p_text == chapter_title.lower().strip():
+                tag.decompose()
+    
+    # remove chapter title that is not in a header tag
+    for element in soup.find_all(string=True):
+        if (element.strip().lower() == chapter_title.strip().lower() and element.parent.name not in {"h1", "h2", "h3", "p"}):
+            element.extract()
 
     final_html = str(soup)
 

@@ -7,6 +7,9 @@ from utils import load_json, dump_json
 
 
 def execute(source: MetadataSource, format_instance: Format) -> Dict:
+    """
+    Executes both format and metadata extraction scripts and fuses them toghether in a json file.
+    """
     source.extract_metadata()
     format_instance.execute()
 

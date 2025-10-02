@@ -19,23 +19,32 @@ class Format:
         self.output_folder = output_folder
         self.chapters_data = []
 
-    def dump_chapters_array(self):
+
+    def __dump_chapters_array(self):
+        """
+        dumps the formatted chapters into the output folder.
+        Should be called after the extraction only.
+        """
         first_chapter = self.chapters_data[0].get("number")
         last_chapter = self.chapters_data[-1].get("number")
         self.output_file = Path(f"{self.output_folder}/chapters_{first_chapter}-{last_chapter}.json")
         dump_json(self.output_file, self.chapters_data)
 
 
-    def extract_chapters(self):
+
+    def __extract_chapters(self):
+        """
+        Load all chapters, sanitize them up, validate them and put them in an array.
+        """
         for chapter_file in self.downloaded_chapters_folder.glob("*.json"):
             chapter_data = load_json(chapter_file)
 
             chapter_title = chapter_data.get("title")
-            chapter_body = self.sanitize_body(html=chapter_data.get("body"), chapter_title=chapter_title)
+            chapter_body = self.__sanitize_body(html=chapter_data.get("body"), chapter_title=chapter_title)
             chapter_id = chapter_data.get("id")
             chapter_number = chapter_id
 
-            self.body_validation(chapter_body, chapter_id)
+            self.__body_validation(chapter_body, chapter_id)
 
 
             self.chapters_data.append(
@@ -48,7 +57,10 @@ class Format:
             )
 
 
-    def extract_range_chapters(self, range: Tuple[int, int]):
+    def __extract_range_chapters(self, range: Tuple[int, int]):
+        """
+        Load the requested range of chapters, sanitize them up, validate them and put them in an array.
+        """
         initial_range, final_Range = range
         for chapter_file in self.downloaded_chapters_folder.glob("*.json"):
             chapter_data = load_json(chapter_file)
@@ -56,9 +68,9 @@ class Format:
 
             if (chapter_id >= initial_range and chapter_id <= final_Range):
                 chapter_title = chapter_data.get("title")
-                chapter_body = self.sanitize_body(html=chapter_data.get("body"), chapter_title=chapter_title)
+                chapter_body = self.__sanitize_body(html=chapter_data.get("body"), chapter_title=chapter_title)
 
-                self.body_validation(chapter_body, chapter_id)
+                self.__body_validation(chapter_body, chapter_id)
 
                 self.chapters_data.append(
                 {
@@ -69,11 +81,21 @@ class Format:
                 }
             )
 
-    def body_validation(self, body: str, chapter_id: int):
+
+    def __body_validation(self, body: str, chapter_id: int):
+        """
+        Sometimes, the chapter is null or has less text than it should. 
+        If so, a warning print will be executed
+        """
         if body is None or len(body) < 50:
             print(f"[bold red]Chapter of id {chapter_id} is suspicious[/bold red]")
 
-    def sanitize_body(self, html: str, chapter_title: str):
+
+
+    def __sanitize_body(self, html: str, chapter_title: str):
+        """"
+        Removes unwanted tags, text and data from the body html.
+        """
         clean_html = nh3.clean(html, tags=ALLOWED_TAGS)
         soup = BeautifulSoup(clean_html, "html.parser")
 
@@ -109,10 +131,10 @@ class Format:
     
 
     def execute_range(self, range: Tuple[int, int]):
-        self.extract_range_chapters(range)
-        self.dump_chapters_array()
+        self.__extract_range_chapters(range)
+        self.__dump_chapters_array()
 
 
     def execute(self):
-        self.extract_chapters()
-        self.dump_chapters_array()
+        self.__extract_chapters()
+        self.__dump_chapters_array()

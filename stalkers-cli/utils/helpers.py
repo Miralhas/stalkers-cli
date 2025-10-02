@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from pathlib import Path
 from time import time
 from typing import Dict
@@ -39,3 +40,14 @@ def timer(name:str):
             return result
         return wrap_func
     return decorator
+
+import typer
+
+
+def open_in_file_explorer(output_path: Path):
+    """
+    Propmt asking if the user wants to open the output path in the file explorer.
+    """
+    open_output = typer.confirm("Open output folder?", default=True)
+    if (open_output):
+        os.startfile(output_path)

@@ -1,6 +1,8 @@
+import logging
 from ast import List
 from pathlib import Path
-from typing import ClassVar, Dict, Tuple
+from typing import ClassVar, Tuple
+from rich import print
 
 import nh3
 from bs4 import BeautifulSoup
@@ -33,6 +35,9 @@ class Format:
             chapter_id = chapter_data.get("id")
             chapter_number = chapter_id
 
+            self.body_validation(chapter_body, chapter_id)
+
+
             self.chapters_data.append(
                 {
                     "id": chapter_id,
@@ -45,7 +50,6 @@ class Format:
 
     def extract_range_chapters(self, range: Tuple[int, int]):
         initial_range, final_Range = range
-        print(range)
         for chapter_file in self.downloaded_chapters_folder.glob("*.json"):
             chapter_data = load_json(chapter_file)
             chapter_id = chapter_data.get("id")
@@ -53,6 +57,9 @@ class Format:
             if (chapter_id >= initial_range and chapter_id <= final_Range):
                 chapter_title = chapter_data.get("title")
                 chapter_body = self.sanitize_body(html=chapter_data.get("body"), chapter_title=chapter_title)
+
+                self.body_validation(chapter_body, chapter_id)
+
                 self.chapters_data.append(
                 {
                     "id": chapter_id,
@@ -62,6 +69,9 @@ class Format:
                 }
             )
 
+    def body_validation(self, body: str, chapter_id: int):
+        if body is None or len(body) < 50:
+            print(f"[bold red]Chapter of id {chapter_id} is suspicious[/bold red]")
 
     def sanitize_body(self, html: str, chapter_title: str):
         clean_html = nh3.clean(html, tags=ALLOWED_TAGS)

@@ -5,8 +5,7 @@ OUTPUT_FOLDER_NAME="formatted-novel"
 AVAILIABLE_SOURCES = ("webnoveldotcom", "novelupdates")
 
 BLACKLIST_TEXT = [
-    "ads",
-    "sponsored",
+    # "sponsored",
     "https://justread.pl/IdleNinjaEmpire.php",
     "I created a game for Android",
     "Novels.pl",

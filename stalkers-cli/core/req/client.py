@@ -61,7 +61,24 @@ class Client():
 
 
     @timer(name="PUT Chapters in Bulk")
-    def __put_chapters_bulk(self, chapters_file: Path, novel_slug:str):
+    def __put_chapters_in_bulk(self, chapters_file: Path, novel_slug:str):
+        data: List[Dict] = load_json(chapters_file)
+        data_dict = {"chapters": data}
+        url = f"{self.base_url}/novels/{novel_slug}/chapters/update-bulk"
+        headers = {
+            ROBOT_HEADER: ROBOT_SECRET,
+            "Content-Type": "application/json",
+        }
+
+        logging.info(f"Sending novel PUT request to '{url}'")
+
+        with Progress( SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
+            progress.add_task(description="Updating Chapters in Bulk...", total=None)
+            return requests.put(url=url, headers=headers, data=json.dumps(data_dict), timeout=30)
+
+
+    @timer(name="PUT Chapters in Bulk")
+    def __post_chapters_bulk(self, chapters_file: Path, novel_slug:str):
         data: List[Dict] = load_json(chapters_file)
         data_dict = {"chapters": data}
         url = f"{self.base_url}/novels/{novel_slug}/chapters/save-bulk"
@@ -75,13 +92,31 @@ class Client():
         with Progress( SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Posting Chapters in Bulk...", total=None)
             return requests.post(url=url, headers=headers, data=json.dumps(data_dict), timeout=30)
-
-    def bulk_chapters_request(self, chapters_file:Path, novel_slug:str):        
+        
+    def put_chapter_in_bulk_request(self, chapters_file:Path, novel_slug:str):        
         try:        
             if not chapters_file.exists():
                 raise Exception(f"Chapters file {chapters_file} doesn't exist")
             
-            r = self.__put_chapters_bulk(chapters_file=chapters_file, novel_slug=novel_slug)
+            r = self.__put_chapters_in_bulk(chapters_file=chapters_file, novel_slug=novel_slug)
+            r.raise_for_status()
+
+            print(f"[green]Request was successful![/green]")
+
+        except requests.HTTPError as ex:
+            print(f"[bold red]Failed with a response code of [italic red]'{r.status_code}'[/italic red]![/bold red] [red]\n{r.json()}[/red]")
+        except requests.Timeout:
+            print("[bold red]Faile because request timed out![/bold red]")
+        except Exception as e:
+            print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
+
+    
+    def post_chapter_in_bulk_request(self, chapters_file:Path, novel_slug:str):        
+        try:        
+            if not chapters_file.exists():
+                raise Exception(f"Chapters file {chapters_file} doesn't exist")
+            
+            r = self.__post_chapters_bulk(chapters_file=chapters_file, novel_slug=novel_slug)
             r.raise_for_status()
 
             print(f"[green]Request was successful![/green]")

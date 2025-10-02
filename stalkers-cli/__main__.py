@@ -1,5 +1,6 @@
 import novel
 import req
+import scripts
 import typer
 
 app = typer.Typer(
@@ -8,6 +9,7 @@ app = typer.Typer(
     no_args_is_help=True,
     
 )
+app.add_typer(scripts.app, name="scripts", help="Some useful scripts")
 app.add_typer(novel.app, name="novel", help="Extract metadata and format chapters of a novel")
 app.add_typer(req.app, name="req", help="Send requests to the Stalkers API")
 

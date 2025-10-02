@@ -7,6 +7,7 @@ from typing import ClassVar, Dict, List
 import requests
 from dotenv import load_dotenv
 from rich import print
+from rich.pretty import pprint
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from utils import load_json, timer
 
@@ -100,12 +101,13 @@ class Client():
             r = self.__post_novel(novel_file)
             r.raise_for_status()
 
-            print(f"{r.json()}")
+            pprint(r.json(), indent_guides=True)
 
             novel_info: Dict = r.json()
 
             if (with_image):
                 r = self.__put_cover(root_path=root_path, novel_slug=novel_info["slug"])
+                pprint(r.json(), indent_guides=True)
                 r.raise_for_status()
 
         except requests.HTTPError as ex:

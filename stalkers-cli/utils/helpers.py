@@ -12,7 +12,7 @@ def load_json(file_path: Path) -> Dict:
     """Load JSON data from a file."""
     try:
         with file_path.open("r", encoding="utf-8") as f:
-            logging.info("Loading JSON file into a dictionary...")
+            # logging.info("Loading JSON file into a dictionary...")
             return json.load(f)
     except Exception as e:
         raise RuntimeError(f"Failed to load JSON from {file_path}: {e}")

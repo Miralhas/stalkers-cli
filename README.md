@@ -30,8 +30,8 @@ pip install -r requirements.txt
 6. Run CLI
 ```bash
 # Windows
-py stalkers-cli/main.py
+py stalkers-cli
 
 # Unix/Mac
-python3 stalkers-cli/main.py
+python3 stalkers-cli
 ```

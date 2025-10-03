@@ -1,1 +1,1 @@
-from .generate_chapters_download_list import generate_download_list
+from .generate_chapters_download_list import generate_download_list, execute_ps1_script

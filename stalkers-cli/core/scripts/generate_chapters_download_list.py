@@ -1,5 +1,6 @@
 from pathlib import Path
 import math
+import subprocess
 
 default_options = {
     "filename_only": "--filename_only",
@@ -12,16 +13,18 @@ default_options = {
 }
 
 
-def create_txt(scripts: list[str], output: Path, sleep: int):
+def create_ps1(scripts: list[str], output: Path, sleep: int) -> str:
+    ps1_file = f"{Path(f"{output}/scripts.ps1")}"
+    
     with open(output / "scripts.ps1", "w") as file:
-        file.write(
-            f"# powershell.exe -noexit -file {Path(f"{output}/scripts.ps1")}\n"
-        )
+        file.write(f"# powershell.exe -noexit -file {ps1_file}\n")
         file.write("Set-Location -Path C:\\Users\\bob\\Desktop\\lightnovel-crawler\n")
         file.write(".\\.venv\\Scripts\\activate\n")
 
         for script in scripts:
             file.write(f"{script}\nStart-Sleep -Seconds {sleep}\n")
+
+    return ps1_file
 
 
 def build_script(source: str, output: Path, range: tuple[int, int]):
@@ -35,11 +38,11 @@ def build_script(source: str, output: Path, range: tuple[int, int]):
     return script
 
 
-def generate_download_list(end_index: int, range_chapters: int, start_index: int, source: str, output: Path, sleep: int) -> None:
+def generate_download_list(end_index: int, range_chapters: int, start_index: int, source: str, output: Path, sleep: int) -> str:
     scripts = []
     total = math.ceil((end_index - start_index) / range_chapters)
     start = start_index
-    last = start + range_chapters
+    last = start + range_chapters - 1
 
     for _ in range(total):
         script = build_script(
@@ -53,7 +56,15 @@ def generate_download_list(end_index: int, range_chapters: int, start_index: int
         new_last = start + range_chapters
         last = new_last if new_last < end_index else end_index
 
-    create_txt(scripts, output, sleep)
+    return create_ps1(scripts, output, sleep)
+
+
+def execute_ps1_script(ps1_file: Path):
+    subprocess.Popen([
+        "powershell.exe",
+        "-Command",
+        f"Start-Process powershell -ArgumentList '-ExecutionPolicy Bypass -File \"{ps1_file}\"'"
+    ])
 
 
 if __name__ == "__main__":

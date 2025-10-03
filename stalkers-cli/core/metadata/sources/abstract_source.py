@@ -1,11 +1,11 @@
-import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import ClassVar, Dict
 
 import nh3
 from bs4 import BeautifulSoup
-from utils import ALLOWED_TAGS, OUTPUT_FOLDER_NAME
+from utils import ALLOWED_TAGS
+
 
 class MetadataSource(ABC):
     novel_uri = ClassVar[str]

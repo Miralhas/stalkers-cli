@@ -1,11 +1,10 @@
-import logging
 from ast import List
 from pathlib import Path
 from typing import ClassVar, Tuple
-from rich import print
 
 import nh3
 from bs4 import BeautifulSoup
+from rich import print
 from utils import ALLOWED_TAGS, BLACKLIST_SET, dump_json, load_json
 
 

@@ -1,17 +1,17 @@
 import logging
 from pathlib import Path
-from typing import ClassVar, Dict, List, Literal
+from typing import Literal
 
+from rich import print
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from utils import dump_json
-from rich import print
-from .constants import GENRES
 
 from .abstract_source import MetadataSource
+from .constants import GENRES
+
 
 class RoyalRoadSource(MetadataSource):
     def __init__(self, novel_uri: str, output_folder: Path):

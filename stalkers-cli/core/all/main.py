@@ -1,9 +1,9 @@
 from ast import Dict
-from pathlib import Path
 from typing import List
-from core.metadata import MetadataSource
+
 from core.format import Format
-from utils import load_json, dump_json
+from core.metadata import MetadataSource
+from utils import load_json
 
 
 def execute(source: MetadataSource, format_instance: Format) -> Dict:

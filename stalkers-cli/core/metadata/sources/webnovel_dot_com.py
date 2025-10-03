@@ -12,6 +12,7 @@ from utils import dump_json
 from .abstract_source import MetadataSource
 from .constants import GENRES
 
+
 class WebnovelDotComSource(MetadataSource):
     def __init__(self, novel_uri: str, output_folder: Path):
         super().__init__(novel_uri=novel_uri, output_folder=output_folder)

@@ -2,8 +2,6 @@ import nh3
 
 OUTPUT_FOLDER_NAME="formatted-novel"
 
-AVAILIABLE_SOURCES = ("webnoveldotcom", "novelupdates")
-
 BLACKLIST_TEXT = [
     # "sponsored",
     "https://justread.pl/IdleNinjaEmpire.php",

@@ -2,11 +2,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import typer
-from core.req import Client
-from typing_extensions import Annotated
-from utils import OUTPUT_FOLDER_NAME
 from core.scripts import generate_download_list
-from utils import open_in_file_explorer
+from typing_extensions import Annotated
+from utils import OUTPUT_FOLDER_NAME, open_in_file_explorer
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -34,7 +32,7 @@ def main(
 
     ctx.obj = SimpleNamespace(root=root, output_folder=output_folder)
 
-@app.command("dl-list")
+@app.command("dl-list", help="This script generates a powershell script that automates the downloading of chapters from a given source into sequential ranges. It is useful against sources that have a rate limit.")
 def generate_chapters_download_list_script(
     ctx: typer.Context,
     start: Annotated[int, typer.Option('--start', '-s', help=OPTIONS_HELP_TEXT["start"], prompt="start index")] = None,

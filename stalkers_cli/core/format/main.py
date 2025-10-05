@@ -5,13 +5,14 @@ from typing import ClassVar, Tuple
 import nh3
 from bs4 import BeautifulSoup
 from rich import print
-from utils import ALLOWED_TAGS, BLACKLIST_SET, dump_json, load_json
+from stalkers_cli.utils import ALLOWED_TAGS, BLACKLIST_SET, dump_json, load_json
 
 
 class Format:
     downloaded_chapters_folder: ClassVar[Path]
     output_folder: ClassVar[Path]
     chapters_data: ClassVar[List]
+    output_file: ClassVar[Path]
 
     def __init__(self, root_path: Path, output_folder=Path):
         self.downloaded_chapters_folder = Path(f"{root_path}/json")
@@ -137,3 +138,6 @@ class Format:
     def execute(self):
         self.__extract_chapters()
         self.__dump_chapters_array()
+
+    def validate(self):
+        self.__extract_chapters()

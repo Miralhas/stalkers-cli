@@ -1,9 +1,9 @@
 from ast import Dict
 from typing import List
 
-from core.format import Format
-from core.metadata import MetadataSource
-from utils import load_json
+from stalkers_cli.core.format import Format
+from stalkers_cli.core.metadata import MetadataSource
+from stalkers_cli.utils import load_json
 
 
 def execute(source: MetadataSource, format_instance: Format) -> Dict:

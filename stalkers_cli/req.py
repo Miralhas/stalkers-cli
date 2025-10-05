@@ -34,7 +34,7 @@ def main(
 @app.command("novel", help="Post a novel")
 def post_novel(
     ctx: typer.Context,
-    with_image: Annotated[bool, typer.Option("--with-image", "-i", help=OPTIONS_HELP_TEXT["with_image"], prompt=True, case_sensitive=False)] = True
+    with_image: Annotated[bool, typer.Option("--with-image", "-i", help=OPTIONS_HELP_TEXT["with_image"])] = True
 ):
     client = Client()
     novel_file = Path(f"{ctx.obj.output_folder}/novel.json")

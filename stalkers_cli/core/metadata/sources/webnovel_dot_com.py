@@ -7,7 +7,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from utils import dump_json
+from stalkers_cli.utils import dump_json
 
 from .abstract_source import MetadataSource
 from .constants import GENRES

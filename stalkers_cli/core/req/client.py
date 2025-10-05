@@ -6,10 +6,13 @@ from typing import ClassVar, Dict, List
 
 import requests
 from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
 from rich import print
 from rich.pretty import pprint
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from utils import load_json, timer
+from urllib3.util import Retry
+
+from stalkers_cli.utils import load_json, timer
 
 logging.basicConfig(level=logging.INFO)
 
@@ -21,6 +24,8 @@ ROBOT_SECRET = os.getenv("ROBOT_SECRET")
 assert BASE_URL is not None, "BASE_URL missing from .env file"
 assert ROBOT_HEADER is not None, "ROBOT_HEADER missing from .env file"
 assert ROBOT_SECRET is not None, "ROBOT_SECRET a missing from .env file"
+
+TIMEOUT = 60 * 2.5 # 2 and 1/5 Minutes
 
 class Client():
     base_url: ClassVar[str]
@@ -44,7 +49,7 @@ class Client():
 
         with Progress( SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Posting Novel...", total=None)
-            return requests.post(url=url, headers=headers, data=json.dumps(data), timeout=30)
+            return requests.post(url=url, headers=headers, data=json.dumps(data), timeout=TIMEOUT)
     
 
     @timer(name="PUT Novel Cover")
@@ -57,11 +62,24 @@ class Client():
         ]
         payload = {'description': f'{novel_slug} cover'}
 
-        return requests.put(url, headers = {ROBOT_HEADER: ROBOT_SECRET}, files=files, data=payload, timeout=30)
+        return requests.put(url, headers = {ROBOT_HEADER: ROBOT_SECRET}, files=files, data=payload, timeout=TIMEOUT)
 
 
     @timer(name="PUT Chapters in Bulk")
     def __put_chapters_in_bulk(self, chapters_file: Path, novel_slug:str):
+        
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=10,
+            status_forcelist=[413, 429, 500, 502, 503, 504], 
+            allowed_methods=["HEAD", "PUT", "OPTIONS"]
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        http = requests.Session()
+        http.mount("https://", adapter)
+        http.mount("http://", adapter)
+
+
         data: List[Dict] = load_json(chapters_file)
         data_dict = {"chapters": data}
         url = f"{self.base_url}/novels/{novel_slug}/chapters/update-bulk"
@@ -74,7 +92,7 @@ class Client():
 
         with Progress( SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Updating Chapters in Bulk...", total=None)
-            return requests.put(url=url, headers=headers, data=json.dumps(data_dict), timeout=30)
+            return http.put(url=url, headers=headers, data=json.dumps(data_dict), timeout=TIMEOUT)
 
 
     @timer(name="PUT Chapters in Bulk")
@@ -91,7 +109,7 @@ class Client():
 
         with Progress( SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Posting Chapters in Bulk...", total=None)
-            return requests.post(url=url, headers=headers, data=json.dumps(data_dict), timeout=30)
+            return requests.post(url=url, headers=headers, data=json.dumps(data_dict), timeout=TIMEOUT)
         
     def put_chapter_in_bulk_request(self, chapters_file:Path, novel_slug:str):        
         try:        

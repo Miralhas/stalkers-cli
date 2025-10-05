@@ -1,10 +1,9 @@
 from pathlib import Path
-from types import SimpleNamespace
 
 import typer
 from core.scripts import generate_download_list, execute_ps1_script
 from typing_extensions import Annotated
-from utils import OUTPUT_FOLDER_NAME, open_in_file_explorer
+from utils import open_in_file_explorer
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -17,24 +16,10 @@ OPTIONS_HELP_TEXT = {
     "sleep": "Sleep between downloads",
 }
 
-@app.callback()
-def main(
-    ctx: typer.Context,
-    root: Annotated[Path,typer.Option("--root", "-r", help=OPTIONS_HELP_TEXT["root"], prompt="Root Folder", exists=True)] = None,
-):
-    if not root:
-        print("Missing root folder. Pass --root / -r")
-        raise typer.Exit(1)
-
-    # create output folder (root/formatted-novel) if it doesn't exists
-    output_folder = Path(f"{root}/{OUTPUT_FOLDER_NAME}")
-    output_folder.mkdir(parents=True, exist_ok=True)
-
-    ctx.obj = SimpleNamespace(root=root, output_folder=output_folder)
 
 @app.command("dl-list", help="This script generates a powershell script that automates the downloading of chapters from a given source into sequential ranges. It is useful against sources that have a rate limit.")
 def generate_chapters_download_list_script(
-    ctx: typer.Context,
+    root: Annotated[Path,typer.Option("--root", "-r", help=OPTIONS_HELP_TEXT["root"], prompt="Root Folder", exists=True)] = None,
     start: Annotated[int, typer.Option('--start', '-s', help=OPTIONS_HELP_TEXT["start"], prompt="start index")] = None,
     end: Annotated[int, typer.Option('--end', '-e', help=OPTIONS_HELP_TEXT["end"], prompt="end index")] = None,
     source: Annotated[str, typer.Option('--source', '-src', help=OPTIONS_HELP_TEXT["source"], prompt=True)] = None,
@@ -42,7 +27,7 @@ def generate_chapters_download_list_script(
     sleep: Annotated[str, typer.Option('--sleep', help=OPTIONS_HELP_TEXT["sleep"])] = 5,
 ):
     ps1_script = generate_download_list(
-        output=ctx.obj.root,
+        output=root,
         range_chapters=range,
         source=source,
         start_index=start,
@@ -54,7 +39,7 @@ def generate_chapters_download_list_script(
     if (execute):
         execute_ps1_script(ps1_file=ps1_script)
 
-    open_in_file_explorer(ctx.obj.root)
+    open_in_file_explorer(root)
 
 
 if __name__ == "__main__":

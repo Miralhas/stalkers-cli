@@ -4,7 +4,7 @@ from typing import ClassVar, Dict
 
 import nh3
 from bs4 import BeautifulSoup
-from utils import ALLOWED_TAGS
+from stalkers_cli.utils import ALLOWED_TAGS
 
 
 class MetadataSource(ABC):

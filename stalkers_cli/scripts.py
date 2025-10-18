@@ -1,11 +1,14 @@
 from pathlib import Path
 
 import typer
-from core.scripts import execute_ongoing_updates, generate_download_list, execute_ps1_script
-from typing_extensions import Annotated
-from stalkers_cli.core import all
-from utils import open_in_file_explorer
+from core.scripts import (execute_ongoing_updates, execute_ps1_script,
+                          generate_download_list)
 from rich import print
+from rich.pretty import pprint
+from typing_extensions import Annotated
+from utils import open_in_file_explorer
+
+from stalkers_cli.core import all
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -50,6 +53,9 @@ def ongoing_updates(
 ):
     responses = execute_ongoing_updates(absolute_root)
     success_responses = [response for response in responses if response["type"] == "SUCCESS"]
+    
+    if len(success_responses) <= 0:
+        print("[green]All ONGOING novels are up to date![/green]")
     
     download_chapters = typer.confirm("Download updates?", default=True)
 

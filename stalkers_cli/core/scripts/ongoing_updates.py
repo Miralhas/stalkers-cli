@@ -133,7 +133,7 @@ def responses_to_xlsx(responses: list[dict]):
     XLSX_OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = XLSX_OUTPUT_PATH / f"novels_to_update-{timestamp}.xlsx"
+    filename = XLSX_OUTPUT_PATH / f"updates_report-{timestamp}.xlsx"
 
     df = pd.DataFrame(responses)
 

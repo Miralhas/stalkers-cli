@@ -1,9 +1,11 @@
 from pathlib import Path
 
 import typer
-from core.scripts import generate_download_list, execute_ps1_script
+from core.scripts import execute_ongoing_updates, generate_download_list, execute_ps1_script
 from typing_extensions import Annotated
+from stalkers_cli.core import all
 from utils import open_in_file_explorer
+from rich import print
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -14,8 +16,8 @@ OPTIONS_HELP_TEXT = {
     "range": "Range of chapters that will be downloaded between the scripts",
     "source": "Source from where the chapters will be downloaded (E.g. 'https://novelnext.com/books/the-authors-pov')",
     "sleep": "Sleep between downloads",
+    "absolute_root": "Folder where all the novels are stored"
 }
-
 
 @app.command("dl-list", help="This script generates a powershell script that automates the downloading of chapters from a given source into sequential ranges. It is useful against sources that have a rate limit.")
 def generate_chapters_download_list_script(
@@ -40,6 +42,22 @@ def generate_chapters_download_list_script(
         execute_ps1_script(ps1_file=ps1_script)
 
     open_in_file_explorer(root)
+
+
+@app.command("updates", help="")
+def ongoing_updates(
+    absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
+):
+    responses = execute_ongoing_updates(absolute_root)
+    success_responses = [response for response in responses if response["type"] == "SUCCESS"]
+    
+    download_chapters = typer.confirm("Download updates?", default=True)
+
+    if (download_chapters):
+        all(responses=success_responses, absolute_root=absolute_root)
+        
+
+
 
 
 if __name__ == "__main__":

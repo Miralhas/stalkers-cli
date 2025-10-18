@@ -23,11 +23,11 @@ NOVELS_STORAGE_PATH = Path(r"C:\Users\bob\Desktop\NovelOutput")
 XLSX_OUTPUT_PATH = Path(r"C:\Users\bob\Desktop\On Going Updates")
 
 
-def get_novel_source_from_chapter_slug(slug: str):
+def get_novel_source_from_chapter_slug(slug: str, absolute_root: Path):
     """
     Gets the download source of a novel
     """
-    novel_dir = NOVELS_STORAGE_PATH / slug
+    novel_dir = absolute_root / slug
     meta_json_file = novel_dir / "meta.json"
 
     if not meta_json_file.exists():
@@ -75,47 +75,50 @@ def build_response(
     return response
 
 
-def get_responses(novels: list[dict]):
+def get_responses(novels: list[dict], absolute_root: Path):
     """
     For each novel, check if new chapters are available and return structured responses.
     """
     responses = []
-
+    print(f"[green]Checking a total of:[/green] [blue]{len(novels)}[/blue] [green]novels[/green]")
     for novel in novels:
         title = novel.get("title")
-        slug = novel["slug"]
+        slug = novel.get("slug")
 
         print(f"[green]Checking novel:[/green] [blue]{title}[/blue]")
 
-        src = get_novel_source_from_chapter_slug(novel["slug"])
+        src = get_novel_source_from_chapter_slug(slug, absolute_root)
 
         if not src:
-            responses.append(build_response(slug, "ERROR", SOURCE_NONE_MESSAGE))
+            responses.append({"slug": slug, "type": "ERROR", "message": SOURCE_NONE_MESSAGE})
             continue
 
         try:
-            chapters = get_novel_chapters_count_from_source(src)
-            chapters_to_download = chapters - novel["chaptersCount"]
+            chapters_on_source = get_novel_chapters_count_from_source(src)
+            chapters_on_db = novel.get("chaptersCount")
+            chapters_to_download = chapters_on_source - chapters_on_db
 
             if chapters_to_download > 0:
-                responses.append(
-                    build_response(
-                        slug,
-                        "SUCCESS",
-                        f"There are {chapters_to_download} new chapters to download",
-                        src,
-                        chapters_to_download,
-                    )
-                )
+                responses.append({
+                    "slug": slug,
+                    "type": "SUCCESS",
+                    "message": f"There are {chapters_to_download} new chapters to download",
+                    "source": src,
+                    "chapters_count": chapters_on_db,
+                    "from": chapters_on_db+1,
+                    "to": chapters_on_db+chapters_to_download,
+                })
             elif chapters_to_download < 0:
-                responses.append(build_response(slug, "ERROR", MISMATCH_ERROR_MESSAGE))
+                responses.append(
+                    {"slug": slug, "type": "ERROR", "message": MISMATCH_ERROR_MESSAGE}
+                )
             else:
-                responses.append(build_response(slug, "NO_UPDATE", UP_TO_DATE_MESSAGE))
+                responses.append(
+                    {"slug": slug, "type": "NO_UPDATE", "message": UP_TO_DATE_MESSAGE, "chapters_count": chapters_on_db,}
+                )
 
         except ValueError as ex:
-            responses.append(
-                {"slug": novel["slug"], "type": "ERROR", "message": str(ex)}
-            )
+            responses.append({"slug": slug, "type": "ERROR", "message": str(ex)})
 
     return responses
 
@@ -139,16 +142,17 @@ def responses_to_xlsx(responses: list[dict]):
     df.to_excel(filename, index=False, engine="openpyxl")
 
 
-def execute():
+def execute_ongoing_updates(absolute_root: Path):
     """
     Will fetch all ongoing novels from the backend, verify if there are new chapters to download
     and create a xlsx report.
     """
     client = Client()
     novels = client.get_all_ongoing_novels_info()
-    responses = get_responses(novels)
+    responses = get_responses(novels, absolute_root)
     responses_to_xlsx(responses)
+    return responses
 
 
 if __name__ == "__main__":
-    execute()
+    execute_ongoing_updates()

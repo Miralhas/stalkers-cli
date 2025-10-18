@@ -110,8 +110,10 @@ class Client():
         with Progress( SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Posting Chapters in Bulk...", total=None)
             return requests.post(url=url, headers=headers, data=json.dumps(data_dict), timeout=TIMEOUT)
-        
+    
+    @timer(name="Ongoing Novels")
     def get_all_ongoing_novels_info(self):
+        print("[yellow]Fetching all ongoing novels...[/yellow]")
         try:
             url = f"{self.base_url}/info/novels?status=ON_GOING"
             r = requests.get(url=url)

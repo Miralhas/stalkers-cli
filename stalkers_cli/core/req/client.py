@@ -25,7 +25,7 @@ assert BASE_URL is not None, "BASE_URL missing from .env file"
 assert ROBOT_HEADER is not None, "ROBOT_HEADER missing from .env file"
 assert ROBOT_SECRET is not None, "ROBOT_SECRET a missing from .env file"
 
-TIMEOUT = 60 * 2.5 # 2 and 1/5 Minutes
+TIMEOUT = 60 * 2.5 # 2 and 1/2 Minutes
 
 class Client():
     base_url: ClassVar[str]
@@ -110,6 +110,23 @@ class Client():
         with Progress( SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Posting Chapters in Bulk...", total=None)
             return requests.post(url=url, headers=headers, data=json.dumps(data_dict), timeout=TIMEOUT)
+        
+    def get_all_ongoing_novels_info(self):
+        try:
+            url = f"{self.base_url}/info/novels?status=ON_GOING"
+            r = requests.get(url=url)
+            r.raise_for_status()
+
+            print(f"[green]Request was successful![/green]")
+
+            return r.json()
+
+        except requests.HTTPError as ex:
+            print(f"[bold red]Failed with a response code of [italic red]'{r.status_code}'[/italic red]![/bold red] [red]\n{r.json()}[/red]")
+        except requests.Timeout:
+            print("[bold red]Faile because request timed out![/bold red]")
+        except Exception as e:
+            print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
         
     def put_chapter_in_bulk_request(self, chapters_file:Path, novel_slug:str):        
         try:        

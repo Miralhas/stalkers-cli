@@ -5,7 +5,7 @@ from typing import ClassVar, Tuple
 import nh3
 from bs4 import BeautifulSoup
 from rich import print
-from stalkers_cli.utils import ALLOWED_TAGS, BLACKLIST_SET, dump_json, load_json
+from stalkers_cli.utils import ALLOWED_TAGS, dump_json, load_json, BLACKLIST_SET
 
 
 class Format:
@@ -101,6 +101,7 @@ class Format:
 
         for tag in soup.find_all():
             text = tag.get_text(strip=True).lower()
+
             if any(bad_text in text for bad_text in BLACKLIST_SET):
                 tag.decompose()
 
@@ -113,6 +114,9 @@ class Format:
 
             if tag.name == "h1":
                 tag.decompose()
+
+            # if tag.name == "img":
+            #     tag.decompose()
 
         # Sometimes, the chapter title is written as pure text (not inside an html tag)
         # This is to delete them

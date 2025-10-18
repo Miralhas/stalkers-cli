@@ -35,4 +35,5 @@ GENRES = [
     "xuanhuan",
     "yaoi",
     "yuri",
+    "games"
 ]

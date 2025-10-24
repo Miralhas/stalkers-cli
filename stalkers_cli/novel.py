@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from typing import Tuple
 
 import typer
-from core.all import execute
+from core.format_all import execute_metadata_and_format
 from core.format import Format
 from core.metadata import AvailableSources, get_source
 from typing_extensions import Annotated
@@ -27,7 +27,7 @@ def main(
         print("Missing root folder. Pass --root / -r")
         raise typer.Exit(1)
     
-    # create output folder (root/formatteed-novel)
+    # create output folder (root/formatted-novel)
     output_folder = Path(f"{root}/{OUTPUT_FOLDER_NAME}")
     output_folder.mkdir(parents=True, exist_ok=True)
 
@@ -43,7 +43,7 @@ def all(
     format_instance = Format(ctx.obj.root, ctx.obj.output_folder)
     metadata_source = get_source(value=source)(novel_uri=novel_uri, output_folder=ctx.obj.output_folder)
 
-    novel = execute(source=metadata_source, format_instance=format_instance)
+    novel = execute_metadata_and_format(source=metadata_source, format_instance=format_instance)
     novel_file = Path(f"{ctx.obj.output_folder}/novel.json")
 
     dump_json(novel_file, novel)

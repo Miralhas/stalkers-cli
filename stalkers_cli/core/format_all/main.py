@@ -6,7 +6,7 @@ from stalkers_cli.core.metadata import MetadataSource
 from stalkers_cli.utils import load_json
 
 
-def execute(source: MetadataSource, format_instance: Format) -> Dict:
+def execute_metadata_and_format(source: MetadataSource, format_instance: Format) -> Dict:
     """
     Executes both format and metadata extraction scripts and fuses them toghether in a json file.
     """

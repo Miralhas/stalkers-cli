@@ -1,0 +1,1 @@
+from .main import execute_metadata_and_format

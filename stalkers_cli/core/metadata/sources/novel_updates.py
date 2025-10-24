@@ -21,7 +21,10 @@ class NovelUpdatesSource(MetadataSource):
 
     def extract_metadata(self):
         logging.info("Starting metadata extraction...")
-        driver = webdriver.Firefox()
+
+        options = webdriver.FirefoxOptions()
+        driver = webdriver.Firefox(options=options)
+        
         meta_data = {}
         try:
             driver.get(self.url)

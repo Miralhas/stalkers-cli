@@ -44,7 +44,7 @@ class Format:
             chapter_id = chapter_data.get("id")
             chapter_number = chapter_id
 
-            self.__body_validation(chapter_body, chapter_id)
+            self.__body_validation(chapter_file, chapter_body, chapter_id)
 
 
             self.chapters_data.append(
@@ -70,7 +70,7 @@ class Format:
                 chapter_title = chapter_data.get("title")
                 chapter_body = self.__sanitize_body(html=chapter_data.get("body"), chapter_title=chapter_title)
 
-                self.__body_validation(chapter_body, chapter_id)
+                self.__body_validation(chapter_file, chapter_body, chapter_id)
 
                 self.chapters_data.append(
                 {
@@ -82,12 +82,13 @@ class Format:
             )
 
 
-    def __body_validation(self, body: str, chapter_id: int):
+    def __body_validation(self, chapter_file: Path, body: str, chapter_id: int):
         """
         Sometimes, the chapter is null or has less text than it should. 
         If so, a warning print will be executed
         """
-        if body is None or len(body) < 50:
+        file_size_kb = chapter_file.stat().st_size / 1024
+        if body is None or len(body) < 50 or file_size_kb < 1.5:
             print(f"[bold red]Chapter of id {chapter_id} is suspicious[/bold red]")
 
 

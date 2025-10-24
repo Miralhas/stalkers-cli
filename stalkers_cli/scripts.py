@@ -1,14 +1,21 @@
+import time
 from pathlib import Path
 
+import questionary
 import typer
 from core.scripts import (execute_ongoing_updates, execute_ps1_script,
                           generate_download_list)
 from rich import print
-from rich.pretty import pprint
 from typing_extensions import Annotated
+from stalkers_cli.core.scripts.mass_downloader.slug_scrapper import scrape_and_check
 from utils import open_in_file_explorer
 
-from stalkers_cli.core import all
+from stalkers_cli.core import all, check_sus
+from stalkers_cli.core.scripts.mass_downloader.downloader import \
+    download_rec_list
+from stalkers_cli.core.scripts.mass_downloader.format_all_novels_inside_folder import \
+    format_and_post
+from stalkers_cli.utils.helpers import dict_to_xlsx
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -19,8 +26,43 @@ OPTIONS_HELP_TEXT = {
     "range": "Range of chapters that will be downloaded between the scripts",
     "source": "Source from where the chapters will be downloaded (E.g. 'https://novelnext.com/books/the-authors-pov')",
     "sleep": "Sleep between downloads",
-    "absolute_root": "Folder where all the novels are stored"
+    "absolute_root": "Folder where all the novels are stored",
+    "rec_list": "Link to a novelupdates recommendation list (E.g https://www.novelupdates.com/viewlist/126398/)",
+    "workers": "Number of threads to be used for download"
 }
+
+@app.command("check-sus")
+def check_all_novels_chapters(
+    absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
+):
+    check_sus(absolute_root)
+
+@app.command("fpost", help="this script formats and post every novel inside the provided folder.")
+def fpost(
+    absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
+):
+    paths = list(absolute_root.iterdir())
+    selected_paths = questionary.checkbox(
+        f"\n\nPaths to be formatted [{len(paths)}]",
+        choices=[str(path) for path in paths if path.is_dir()]
+    ).ask()
+
+    selected_paths = [Path(path) for path in selected_paths]
+
+    for novel in selected_paths:
+        format_and_post(novel)
+        time.sleep(5)
+
+@app.command("dlrec", help="Downloads every novel in a novelupdates recommendation list")
+def dlrec(
+    rec_list: Annotated[str, typer.Option('--rec-list', '-rl', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
+    output: Annotated[Path,typer.Option("--output", "-o", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="output")] = None,
+    workers: Annotated[int, typer.Option('--end', '-e', help=OPTIONS_HELP_TEXT["workers"])] = 5,
+):
+    output.mkdir(parents=True, exist_ok=True)
+    download_rec_list(rec_list, output, workers)
+    # responses = dict_to_xlsx(responses, output, "mass_download_report")
+
 
 @app.command("dl-list", help="This script generates a powershell script that automates the downloading of chapters from a given source into sequential ranges. It is useful against sources that have a rate limit.")
 def generate_chapters_download_list_script(
@@ -56,15 +98,13 @@ def ongoing_updates(
     
     if len(success_responses) <= 0:
         print("[green]All ONGOING novels are up to date![/green]")
+        return
     
     download_chapters = typer.confirm("Download updates?", default=True)
 
     if (download_chapters):
         all(responses=success_responses, absolute_root=absolute_root)
         
-
-
-
 
 if __name__ == "__main__":
     app()

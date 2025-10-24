@@ -39,7 +39,6 @@ def print_responses_table(responses: list[dict]):
     table.add_column("From", overflow="fold")
     table.add_column("To", overflow="fold")
 
-    # Add rows
     for res in responses:
         table.add_row(
             res.get("slug", ""),

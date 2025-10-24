@@ -12,9 +12,8 @@ def check_sus(novelOutput: Path):
             print(f"[{index+1}]: Checking: [green]{item_path.name}[/green]")
             output_folder = Path(f"{item_path}/{OUTPUT_FOLDER_NAME}")
             output_folder.mkdir(parents=True, exist_ok=True)
-
             format = Format(item_path, output_folder)
             format.validate()
 
 if __name__ == "__main__":
-    check_sus(Path(r"C:\Users\bob\Desktop\NovelOutput"))
+    check_sus(Path(r"C:\Users\bob\Desktop\rec_lists\antihero_122327"))

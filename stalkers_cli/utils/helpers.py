@@ -1,10 +1,12 @@
 import json
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from time import time
 from typing import Dict
 
+import pandas as pd
 from rich import print
 
 logging.basicConfig(level=logging.INFO)
@@ -51,3 +53,20 @@ def open_in_file_explorer(output_path: Path):
     open_output = typer.confirm("Open output folder?", default=True)
     if (open_output):
         os.startfile(output_path)
+
+
+def dict_to_xlsx(responses: list[dict], root_path: Path, name="report"):
+    """ "
+    Will create a xlsx report with the data on the responses array.
+    """
+    if not responses:
+        raise Exception("Responses is invalid!")
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = root_path / f"{name}-{timestamp}.xlsx"
+
+    df = pd.DataFrame(responses)
+
+    print("Saving responses to excel")
+
+    df.to_excel(filename, index=False, engine="openpyxl")

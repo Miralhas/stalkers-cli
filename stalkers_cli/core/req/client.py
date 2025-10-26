@@ -198,11 +198,16 @@ class Client():
                 r = self.__put_cover(root_path=root_path, novel_slug=novel_info["slug"])
                 pprint(r.json(), indent_guides=True)
                 r.raise_for_status()
+            
+            return True
 
         except requests.HTTPError as ex:
             print(f"[bold red]Failed with a response code of [italic red]'{r.status_code}'[/italic red]![/bold red] [red]\n{r.json()}[/red]")
+            return False
         except requests.Timeout:
             print("[bold red]Faile because request timed out![/bold red]")
+            return False
         except Exception as e:
             print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
+            return False
         

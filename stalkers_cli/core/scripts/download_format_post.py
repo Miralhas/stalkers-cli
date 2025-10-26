@@ -32,7 +32,7 @@ def print_responses_table(responses: list[dict]):
         width=120
     )
 
-    table.add_column("Slug", style="bold red", no_wrap=True)
+    table.add_column("Slug", style="bold red", overflow='fold')
     table.add_column("Message", overflow="fold")
     table.add_column("Source", overflow="fold")
     table.add_column("Chapters Count", style="green", overflow="fold")

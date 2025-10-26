@@ -1,3 +1,4 @@
+import shutil
 import time
 from pathlib import Path
 
@@ -5,16 +6,18 @@ import questionary
 import typer
 from core.scripts import (execute_ongoing_updates, execute_ps1_script,
                           generate_download_list)
+from questionary import Choice
 from rich import print
 from typing_extensions import Annotated
-from stalkers_cli.core.scripts.mass_downloader.slug_scrapper import scrape_and_check
 from utils import open_in_file_explorer
 
 from stalkers_cli.core import all, check_sus
 from stalkers_cli.core.scripts.mass_downloader.downloader import \
-    download_rec_list
+    download_novels
 from stalkers_cli.core.scripts.mass_downloader.format_all_novels_inside_folder import \
     format_and_post
+from stalkers_cli.core.scripts.mass_downloader.slug_scrapper import \
+    scrape_and_check
 from stalkers_cli.utils.helpers import dict_to_xlsx
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -27,7 +30,7 @@ OPTIONS_HELP_TEXT = {
     "source": "Source from where the chapters will be downloaded (E.g. 'https://novelnext.com/books/the-authors-pov')",
     "sleep": "Sleep between downloads",
     "absolute_root": "Folder where all the novels are stored",
-    "rec_list": "Link to a novelupdates recommendation list (E.g https://www.novelupdates.com/viewlist/126398/)",
+    "rec_list": "Link to a novelupdates novels list (E.g https://www.novelupdates.com/viewlist/126398/ || https://www.novelupdates.com/series-ranking/)",
     "workers": "Number of threads to be used for download"
 }
 
@@ -35,7 +38,18 @@ OPTIONS_HELP_TEXT = {
 def check_all_novels_chapters(
     absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
 ):
-    check_sus(absolute_root)
+    sus_folders = check_sus(absolute_root)
+
+    folders_to_delete = questionary.checkbox(
+        f"\n\nFolders to delete",
+        choices=[Choice(title=f"{sus["name"]} - {sus["reason"]}", value=sus["path"]) for sus in sus_folders],
+    ).ask()
+
+    if (folders_to_delete is not None):
+        for folder_path in folders_to_delete:
+            shutil.rmtree(folder_path)  
+
+
 
 @app.command("fpost", help="this script formats and post every novel inside the provided folder.")
 def fpost(
@@ -49,19 +63,55 @@ def fpost(
 
     selected_paths = [Path(path) for path in selected_paths]
 
-    for novel in selected_paths:
-        format_and_post(novel)
+    failed_requests = []
+    for index, novel in enumerate(selected_paths):
+        print(f"\n[yellow][{index+1}/{len(selected_paths)}][/yellow]: [green]Formating and posting:[/green] [bright_white]{novel.name}[bright_white]")
+        request_status = format_and_post(novel)
+        if not request_status:
+            failed_requests.append({"novel": novel.name, "status": request_status, "path": novel})
         time.sleep(5)
 
-@app.command("dlrec", help="Downloads every novel in a novelupdates recommendation list")
-def dlrec(
-    rec_list: Annotated[str, typer.Option('--rec-list', '-rl', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
+    failed_requests = questionary.checkbox(
+        f"\n\nFailed Requests [{len(paths)}]",
+        choices=[Choice(title=req["novel"], value=req["path"], checked=True, description="RETRY REQUEST") for req in failed_requests]
+    ).ask()
+
+    for novel in failed_requests:
+        request_status = format_and_post(novel)
+        time.sleep(5)
+    
+    # console = Console()
+
+    # table = Table(
+    #     title=f"Failed requests [{len(failed_requests)}]",
+    #     show_lines=True,
+    #     header_style="bold green",
+    #     width=60
+    # )
+
+    # table.add_column("Novel", style="green", overflow="ellipsis")
+    # table.add_column("Status", style="yellow", overflow="ellipsis")
+
+    # for res in failed_requests:
+    #     table.add_row(
+    #         res.get("novel"),
+    #         str(res.get("status", False)),
+    #     )
+
+    # console.print(table)
+
+@app.command("dl", help="Scrape novel slugs on novelupdates.com and download them")
+def mass_downloader(
+    novel_updates_href: Annotated[str, typer.Option('--href', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
     output: Annotated[Path,typer.Option("--output", "-o", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="output")] = None,
-    workers: Annotated[int, typer.Option('--end', '-e', help=OPTIONS_HELP_TEXT["workers"])] = 5,
+    workers: Annotated[int, typer.Option('--workers', '-w', help=OPTIONS_HELP_TEXT["workers"])] = 5,
+    start: Annotated[int, typer.Option('--start', '-s', help=OPTIONS_HELP_TEXT["start"])] = 1,
+    end: Annotated[int, typer.Option('--end', '-e', help=OPTIONS_HELP_TEXT["end"], prompt="end page")] = None,
 ):
     output.mkdir(parents=True, exist_ok=True)
-    download_rec_list(rec_list, output, workers)
-    # responses = dict_to_xlsx(responses, output, "mass_download_report")
+    novels = sorted(scrape_and_check(novel_updates_href, end_page=end, start_page=start), key=lambda novel: novel["slug"])
+    responses =  download_novels(novels, output, workers)
+    dict_to_xlsx(responses, output, "mass_download_report")
 
 
 @app.command("dl-list", help="This script generates a powershell script that automates the downloading of chapters from a given source into sequential ranges. It is useful against sources that have a rate limit.")

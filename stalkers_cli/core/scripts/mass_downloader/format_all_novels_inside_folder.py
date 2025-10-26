@@ -1,20 +1,24 @@
 from genericpath import isdir
 from pathlib import Path
 import time
+from rich import print
 
 from stalkers_cli.core import AvailableSources, Client, Format, execute_metadata_and_format, get_source
 from stalkers_cli.utils import OUTPUT_FOLDER_NAME, dump_json, open_in_file_explorer
 import typer
 
 def format_all(root_path:Path):
+    requests = []
     for novel in root_path.iterdir():
         if novel.is_dir():
-            format_and_post(novel)
+            request_status = format_and_post(novel)
+            requests.append({"novel": novel.name, "status": request_status})
             time.sleep(5)
+    
+    return requests
 
 
 def format_and_post(novel_path:Path):
-    print(novel_path.name)
     output_folder = novel_path / OUTPUT_FOLDER_NAME
     output_folder.mkdir(parents=True, exist_ok=True)
 
@@ -30,7 +34,7 @@ def format_and_post(novel_path:Path):
     # post_updates = typer.confirm("Post updates?", default=True)
     # if post_updates:
     client = Client()
-    client.novel_request(novel_file, novel_path, True)
+    return client.novel_request(novel_file, novel_path, True)
 
 
 if __name__ == "__main__":

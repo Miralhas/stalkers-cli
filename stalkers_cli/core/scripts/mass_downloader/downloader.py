@@ -17,7 +17,6 @@ from stalkers_cli.core.scripts.mass_downloader.slug_scrapper import \
 AVAILABLE_SOURCES = [
     # {"name": "novlove.com", "src": "https://novlove.com/novel", "hasHtmlSuffix": False},
     {"name": "novelfull.me", "src": "https://novelfull.me", "hasHtmlSuffix": False},
-    {"name": "novelnext.com", "src": "https://novelnext.com/books", "hasHtmlSuffix": False},
     {"name": "wuxia.city", "src": "https://wuxia.city/book", "hasHtmlSuffix": False},
     {"name": "wuxia.click", "src": "https://wuxia.click/novel", "hasHtmlSuffix": False},
     {"name": "novels.pl", "src": "https://www.novels.pl/novel", "hasHtmlSuffix": False},
@@ -26,6 +25,7 @@ AVAILABLE_SOURCES = [
     {"name": "allnovel.org", "src": "https://allnovel.org", "hasHtmlSuffix": True},
     {"name": "allnovelfull.net", "src": "https://allnovelfull.net", "hasHtmlSuffix": True},
     {"name": "allnovelfull.com", "src": "https://allnovelfull.com", "hasHtmlSuffix": True},
+    {"name": "novelnext.com", "src": "https://novelnext.com/books", "hasHtmlSuffix": False},
 ]
 
 progress_bar = Progress(
@@ -170,14 +170,13 @@ def download_single_novel(novel, root_path: Path):
         }
 
 
-def download_rec_list(rec_list_link: str, root_path: Path, max_workers: int = 5) -> list[dict]:
+def download_novels(novels: list[dict], root_path: Path, max_workers: int = 5) -> list[dict]:
     responses = []
-
-    novels = sorted(scrape_and_check(rec_list_link), key=lambda novel: novel["slug"])
+    novels = [novel for novel in novels if novel["onDatabase"] == False]
 
     novels_to_download = questionary.checkbox(
         f"\n\nNovels to be downloaded [{len(novels)}]",
-        choices=[Choice(title=novel["slug"], value=novel, checked=True) for novel in novels if novel["onDatabase"] == False],
+        choices=[Choice(title=novel["slug"], value=novel, checked=True) for novel in novels],
     ).ask()
 
     print_table(novels_to_download)
@@ -198,7 +197,7 @@ def download_rec_list(rec_list_link: str, root_path: Path, max_workers: int = 5)
 
 if __name__ == "__main__":
     root_path = Path(r"C:\Users\bob\Desktop\rec_lists\a_list_8211")
-    responses = download_rec_list("https://www.novelupdates.com/viewlist/8211/", root_path, max_workers=5)
+    responses = download_novels("https://www.novelupdates.com/viewlist/8211/", root_path, max_workers=5)
 
 
     

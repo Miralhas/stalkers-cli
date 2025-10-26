@@ -22,12 +22,25 @@ progress_bar = Progress(
     TimeRemainingColumn(),
 )
 
-def scrape(req_list_url: str) -> list[str]:
+def get_link(base_link:str, start_page: int):
+    if ("?" in base_link):
+        return f"{base_link}&pg={start_page}"
+
+    return f"{base_link}?pg={start_page}"
+
+
+def scrape(req_list_url: str, end_page: int | None = None, start_page=1) -> list[str]:
     """
     Scrape all novel slugs in a recommendation list from novelupdates.com.
     """
     options = webdriver.ChromeOptions()
     options.add_argument('--guest')
+    options.set_capability('unhandledPromptBehavior', 'accept')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-notifications')
+    options.add_argument('--disable-popup-blocking')
     driver = uc.Chrome(
         use_subprocess=False,
         headless=False,
@@ -36,9 +49,13 @@ def scrape(req_list_url: str) -> list[str]:
     driver.maximize_window()
 
     slugs = []
+    
+    current_page = start_page
+
     try:
         logging.info("Starting slugs extraction...")
-        driver.get(req_list_url)
+        driver.get(get_link(req_list_url, start_page))
+        
         wait = WebDriverWait(driver, 10)
         wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="unic-b"]/div/div/div/div[3]/div[1]/button[2]')))
         driver.find_element(By.XPATH, '//*[@id="unic-b"]/div/div/div/div[3]/div[1]/button[2]').click()
@@ -55,7 +72,11 @@ def scrape(req_list_url: str) -> list[str]:
                 
                 next_page_btn = driver.find_element(By.CSS_SELECTOR, "a.next_page")
                 next_page_btn.click()
+                current_page += 1
             except NoSuchElementException:
+                break
+            
+            if (end_page is not None and current_page > end_page):
                 break
         
     except Exception as ex:
@@ -84,9 +105,10 @@ def check_slugs(slugs: list[str]) -> list[dict[str, str | bool]]:
     return responses
 
 
-def scrape_and_check(req_list_url: str):
-    slugs = scrape(req_list_url)
+def scrape_and_check(req_list_url: str, end_page: int | None = None, start_page=1):
+    slugs = scrape(req_list_url, start_page=start_page, end_page=end_page)
     return check_slugs(slugs)
 
 if __name__ == "__main__":
-    res = scrape_and_check("https://www.novelupdates.com/viewlist/118692")
+    slugs = scrape("https://www.novelupdates.com/series-ranking/", end_page=4)
+    print(len(slugs))

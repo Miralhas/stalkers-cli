@@ -80,12 +80,12 @@ def get_responses(novels: list[dict], absolute_root: Path):
     For each novel, check if new chapters are available and return structured responses.
     """
     responses = []
-    print(f"[green]Checking a total of:[/green] [blue]{len(novels)}[/blue] [green]novels[/green]")
-    for novel in novels:
+    print(f"[green]Checking a total of:[/green] [yellow]{len(novels)}[/yellow] [green]novels[/green]")
+    for index, novel in enumerate(novels):
         title = novel.get("title")
         slug = novel.get("slug")
 
-        print(f"[green]Checking novel:[/green] [blue]{title}[/blue]")
+        print(f"[green][{index+1}] Checking novel:[/green] [yellow]{title}[/yellow]")
 
         src = get_novel_source_from_chapter_slug(slug, absolute_root)
 

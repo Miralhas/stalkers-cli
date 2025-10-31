@@ -5,6 +5,7 @@ Create an Excel report at C:\\Users\\bob\\Desktop\\On Going Updates
 
 import re
 import subprocess
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -14,7 +15,7 @@ from rich import print
 from rich.pretty import pprint
 
 from stalkers_cli.core import Client, Format
-from stalkers_cli.utils import load_json
+from stalkers_cli.utils import load_json, dict_to_xlsx, timer
 
 MISMATCH_ERROR_MESSAGE = "Negative chapters to download. Source is mismatched!"
 SOURCE_NONE_MESSAGE = "Source is None"
@@ -75,82 +76,69 @@ def build_response(
     return response
 
 
-def get_responses(novels: list[dict], absolute_root: Path):
+def get_response(novel: list[dict], absolute_root: Path, index: int):
+    title = novel.get("title")
+    slug = novel.get("slug")
+
+    print(f"[green][{index+1}] Checking novel:[/green] [yellow]{title}[/yellow]")
+
+    src = get_novel_source_from_chapter_slug(slug, absolute_root)
+
+    if not src:
+        return {"slug": slug, "type": "ERROR", "message": SOURCE_NONE_MESSAGE}
+
+    try:
+        chapters_on_source = get_novel_chapters_count_from_source(src)
+        chapters_on_db = novel.get("chaptersCount")
+        chapters_to_download = chapters_on_source - chapters_on_db
+
+        if chapters_to_download > 0:
+            return {
+                "slug": slug,
+                "type": "SUCCESS",
+                "message": f"There are {chapters_to_download} new chapters to download",
+                "source": src,
+                "chapters_count": chapters_on_db,
+                "from": chapters_on_db+1,
+                "to": chapters_on_db+chapters_to_download,
+            }
+        elif chapters_to_download < 0:
+            return {"slug": slug, "type": "ERROR", "message": MISMATCH_ERROR_MESSAGE}
+            
+        else:
+            return {"slug": slug, "type": "NO_UPDATE", "message": UP_TO_DATE_MESSAGE, "chapters_count": chapters_on_db}
+
+    except ValueError as ex:
+        return {"slug": slug, "type": "ERROR", "message": str(ex)}
+
+
+def get_responses(novels: list[dict], absolute_root: Path, workers: int):
     """
     For each novel, check if new chapters are available and return structured responses.
     """
     responses = []
     print(f"[green]Checking a total of:[/green] [yellow]{len(novels)}[/yellow] [green]novels[/green]")
-    for index, novel in enumerate(novels):
-        title = novel.get("title")
-        slug = novel.get("slug")
 
-        print(f"[green][{index+1}] Checking novel:[/green] [yellow]{title}[/yellow]")
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(get_response, novel, absolute_root, index): novel for index, novel in enumerate(novels)}
 
-        src = get_novel_source_from_chapter_slug(slug, absolute_root)
-
-        if not src:
-            responses.append({"slug": slug, "type": "ERROR", "message": SOURCE_NONE_MESSAGE})
-            continue
-
-        try:
-            chapters_on_source = get_novel_chapters_count_from_source(src)
-            chapters_on_db = novel.get("chaptersCount")
-            chapters_to_download = chapters_on_source - chapters_on_db
-
-            if chapters_to_download > 0:
-                responses.append({
-                    "slug": slug,
-                    "type": "SUCCESS",
-                    "message": f"There are {chapters_to_download} new chapters to download",
-                    "source": src,
-                    "chapters_count": chapters_on_db,
-                    "from": chapters_on_db+1,
-                    "to": chapters_on_db+chapters_to_download,
-                })
-            elif chapters_to_download < 0:
-                responses.append(
-                    {"slug": slug, "type": "ERROR", "message": MISMATCH_ERROR_MESSAGE}
-                )
-            else:
-                responses.append(
-                    {"slug": slug, "type": "NO_UPDATE", "message": UP_TO_DATE_MESSAGE, "chapters_count": chapters_on_db,}
-                )
-
-        except ValueError as ex:
-            responses.append({"slug": slug, "type": "ERROR", "message": str(ex)})
-
+            for future in as_completed(futures):
+                result = future.result()
+                responses.append(result)
+    
     return responses
 
 
-def responses_to_xlsx(responses: list[dict]):
-    """ "
-    Will create a xlsx report with the data on the responses array.
-    """
-    if not responses:
-        raise Exception("Responses is invalid!")
-
-    XLSX_OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = XLSX_OUTPUT_PATH / f"updates_report-{timestamp}.xlsx"
-
-    df = pd.DataFrame(responses)
-
-    print("Saving responses to excel")
-
-    df.to_excel(filename, index=False, engine="openpyxl")
-
-
-def execute_ongoing_updates(absolute_root: Path):
+@timer("Updates Check")
+def execute_ongoing_updates(absolute_root: Path, workers: int):
     """
     Will fetch all ongoing novels from the backend, verify if there are new chapters to download
     and create a xlsx report.
     """
     client = Client()
     novels = client.get_all_ongoing_novels_info()
-    responses = get_responses(novels, absolute_root)
-    responses_to_xlsx(responses)
+    responses = get_responses(novels, absolute_root, workers)
+    dict_to_xlsx(responses, XLSX_OUTPUT_PATH, "updates_report")
     return responses
 
 

@@ -26,13 +26,13 @@ def print_responses_table(responses: list[dict]):
     console = Console()
 
     table = Table(
-        title="Updates",
+        title=f"Updates {len(responses)}",
         show_lines=True,
         header_style="bold red",
         width=120
     )
 
-    table.add_column("Slug", style="bold red", overflow='fold')
+    table.add_column("Slug", style="bold red", overflow='ellipsis')
     table.add_column("Message", overflow="fold")
     table.add_column("Source", overflow="fold")
     table.add_column("Chapters Count", style="green", overflow="fold")
@@ -102,7 +102,7 @@ def download_format_post(response: dict, absolute_root: Path):
         if format_updates:
             format = Format(root_path=root_path, output_folder=output_folder)
             format.execute_range(range=(start_index, end_index))
-            open_in_file_explorer(format.output_folder)
+            open_in_file_explorer(format.output_folder, default=False)
 
             post_updates = typer.confirm("Post updates?", default=True)
             if post_updates:

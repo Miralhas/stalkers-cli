@@ -146,6 +146,23 @@ class Client():
             print("[bold red]Faile because request timed out![/bold red]")
         except Exception as e:
             print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
+
+
+    def get_all_novels_info(self) -> list[dict]:
+        try:
+            url = f"{self.base_url}/info/novels"
+            r = requests.get(url=url)
+            r.raise_for_status()
+
+            # print(f"[green]Request was successful![/green]")
+            return r.json()
+
+        except requests.HTTPError as ex:
+            print(f"[bold red]Failed with a response code of [italic red]'{r.status_code}'[/italic red]![/bold red] [red]\n{r.json()}[/red]")
+        except requests.Timeout:
+            print("[bold red]Faile because request timed out![/bold red]")
+        except Exception as e:
+            print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
         
     def put_chapter_in_bulk_request(self, chapters_file:Path, novel_slug:str):        
         try:        

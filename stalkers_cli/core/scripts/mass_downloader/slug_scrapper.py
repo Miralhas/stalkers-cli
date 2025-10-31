@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import undetected_chromedriver as uc
 from rich import print
@@ -110,5 +111,14 @@ def scrape_and_check(req_list_url: str, end_page: int | None = None, start_page=
     return check_slugs(slugs)
 
 if __name__ == "__main__":
-    slugs = scrape("https://www.novelupdates.com/series-ranking/", end_page=4)
-    print(len(slugs))
+    # slugs = scrape("https://www.novelupdates.com/series-ranking/", end_page=4)
+    # print(len(slugs))
+    path = Path(r"C:\Users\bob\Desktop\NovelOutput")
+    slugs = []
+    for novel in path.iterdir():
+        if novel.is_dir():
+            slugs.append(novel.name)
+    
+    res = check_slugs(slugs)
+    
+    print([notOnDB for notOnDB in res if notOnDB["onDatabase"]==False])

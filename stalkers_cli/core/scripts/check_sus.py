@@ -43,4 +43,4 @@ def check_sus(novelOutput: Path):
 
 
 if __name__ == "__main__":
-    check_sus(Path(r"C:\Users\bob\Desktop\rec_lists\antihero_122327"))
+    check_sus(Path(r"C:\Users\bob\Desktop\NovelOutput"))

@@ -46,11 +46,11 @@ def timer(name:str):
 import typer
 
 
-def open_in_file_explorer(output_path: Path):
+def open_in_file_explorer(output_path: Path, default=True):
     """
     Propmt asking if the user wants to open the output path in the file explorer.
     """
-    open_output = typer.confirm("Open output folder?", default=True)
+    open_output = typer.confirm("Open output folder?", default=default)
     if (open_output):
         os.startfile(output_path)
 

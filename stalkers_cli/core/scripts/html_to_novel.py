@@ -68,7 +68,7 @@ def merge_books(root_path: Path):
 
 
 if __name__ == "__main__":
-    root_path = Path(r'C:\Users\bob\Desktop\the-hobbit')
+    root_path = Path(r'C:\Users\bob\Downloads\furia-vermelha')
     output_folder = Path(f"{root_path}/{OUTPUT_FOLDER_NAME}")
     output_folder.mkdir(parents=True, exist_ok=True)
 
@@ -76,6 +76,6 @@ if __name__ == "__main__":
     html_path = root_path / "full.html"
 
     html_str = parse_html(html_path)
-    chapters = get_chapters(html_str, chapter_container_className="body")
+    chapters = get_chapters(html_str, chapter_container_className="chapter-element")
 
     dump_chapters_json(output_folder=output_folder, chapters=chapters)

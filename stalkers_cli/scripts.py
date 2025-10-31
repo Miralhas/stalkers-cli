@@ -41,7 +41,7 @@ def check_all_novels_chapters(
     sus_folders = check_sus(absolute_root)
 
     folders_to_delete = questionary.checkbox(
-        f"\n\nFolders to delete",
+        f"\n\nFolders to delete [{len(sus_folders)}]",
         choices=[Choice(title=f"{sus["name"]} - {sus["reason"]}", value=sus["path"]) for sus in sus_folders],
     ).ask()
 
@@ -71,34 +71,17 @@ def fpost(
             failed_requests.append({"novel": novel.name, "status": request_status, "path": novel})
         time.sleep(5)
 
-    failed_requests = questionary.checkbox(
-        f"\n\nFailed Requests [{len(paths)}]",
-        choices=[Choice(title=req["novel"], value=req["path"], checked=True, description="RETRY REQUEST") for req in failed_requests]
-    ).ask()
+    if len(failed_requests) > 0:
+        failed_requests = questionary.checkbox(
+            f"\n\nFailed Requests [{len(failed_requests)}]",
+            choices=[Choice(title=req["novel"], value=req["path"], checked=True, description="RETRY REQUEST") for req in failed_requests]
+        ).ask()
 
-    for novel in failed_requests:
-        request_status = format_and_post(novel)
-        time.sleep(5)
+        for index, novel in enumerate(failed_requests):
+            print(f"\n[yellow][{index+1}/{len(selected_paths)}][/yellow]: [green]Formating and posting:[/green] [bright_white]{novel.name}[bright_white]")
+            request_status = format_and_post(novel)
+            time.sleep(5)
     
-    # console = Console()
-
-    # table = Table(
-    #     title=f"Failed requests [{len(failed_requests)}]",
-    #     show_lines=True,
-    #     header_style="bold green",
-    #     width=60
-    # )
-
-    # table.add_column("Novel", style="green", overflow="ellipsis")
-    # table.add_column("Status", style="yellow", overflow="ellipsis")
-
-    # for res in failed_requests:
-    #     table.add_row(
-    #         res.get("novel"),
-    #         str(res.get("status", False)),
-    #     )
-
-    # console.print(table)
 
 @app.command("dl", help="Scrape novel slugs on novelupdates.com and download them")
 def mass_downloader(
@@ -142,8 +125,9 @@ def generate_chapters_download_list_script(
 @app.command("updates", help="")
 def ongoing_updates(
     absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
+    workers: Annotated[int, typer.Option('--workers', '-w', help=OPTIONS_HELP_TEXT["workers"])] = 5,
 ):
-    responses = execute_ongoing_updates(absolute_root)
+    responses = execute_ongoing_updates(absolute_root, workers)
     success_responses = [response for response in responses if response["type"] == "SUCCESS"]
     
     if len(success_responses) <= 0:

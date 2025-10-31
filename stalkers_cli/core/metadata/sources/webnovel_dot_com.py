@@ -8,6 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from stalkers_cli.utils import dump_json
+from rich import print
+from selenium.webdriver.firefox.options import Options
 
 from .abstract_source import MetadataSource
 from .constants import GENRES
@@ -54,16 +56,24 @@ class WebnovelDotComSource(MetadataSource):
         metadata_dict["tags"] = tags
         del metadata_dict["tag"]
 
+        print(metadata_dict["genres"])
+        print(metadata_dict["tags"])
+
         metadata_dict["title"] = metadata_dict["title"].lower()
 
     def extract_metadata(self):
         logging.info("Starting metadata extraction...")
-        driver = webdriver.Firefox()
+        
+        options = Options()
+        options.set_preference("intl.accept_languages", "en-US")
+        driver = webdriver.Firefox(options=options)
+
         meta_data = {}
         try:
             driver.get(self.url)
 
             wait = WebDriverWait(driver, 10)
+
             # ultima meta tag
             wait.until(
                 EC.presence_of_element_located(

@@ -6,15 +6,12 @@ Create an Excel report at C:\\Users\\bob\\Desktop\\On Going Updates
 import re
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import pandas as pd
 from rich import print
-from rich.pretty import pprint
 
-from stalkers_cli.core import Client, Format
+from stalkers_cli.core import Client
 from stalkers_cli.utils import load_json, dict_to_xlsx, timer
 
 MISMATCH_ERROR_MESSAGE = "Negative chapters to download. Source is mismatched!"
@@ -84,7 +81,7 @@ def get_response(novel: list[dict], absolute_root: Path, index: int):
     absolute_root_novels_slugs = [novel_path.name for novel_path in list(absolute_root.iterdir()) if novel_path.is_dir()]
 
     if slug not in absolute_root_novels_slugs:
-        return {"slug": slug, "type": "ERROR", "message": MISMATCH_ERROR_MESSAGE}
+        return {"slug": slug, "type": "ERROR", "message": NOVEL_NOT_STORED_LOCALLY}
 
     print(f"[green][{index+1}] Checking novel:[/green] [yellow]{title}[/yellow]")
 
@@ -132,7 +129,7 @@ def get_responses(novels: list[dict], absolute_root: Path, workers: int):
                 result = future.result()
                 responses.append(result)
     
-    return responses
+    return sorted(responses, key=lambda response: response["slug"])
 
 
 @timer("Updates Check")

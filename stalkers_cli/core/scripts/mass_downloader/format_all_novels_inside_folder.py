@@ -1,12 +1,10 @@
-from genericpath import isdir
 from pathlib import Path
 import time
 from rich import print
 
 from stalkers_cli.core import AvailableSources, Client, Format, execute_metadata_and_format, get_source
 from stalkers_cli.core.metadata import MetadataSource
-from stalkers_cli.utils import OUTPUT_FOLDER_NAME, dump_json, open_in_file_explorer
-import typer
+from stalkers_cli.utils import OUTPUT_FOLDER_NAME, dump_json
 
 slugs = [
    'beast-world-i-became-the-little-villains-mommy',

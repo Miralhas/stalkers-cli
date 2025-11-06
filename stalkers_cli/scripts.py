@@ -9,6 +9,8 @@ from core.scripts import (execute_ongoing_updates, execute_ps1_script,
 from questionary import Choice
 from rich import print
 from typing_extensions import Annotated
+from stalkers_cli.core.scripts.mass_downloader.check_chapters_count import check_all_novels_count
+from stalkers_cli.core.scripts.mass_downloader.re_download import re_download_all
 from stalkers_cli.core.scripts.mass_downloader.webnovel_dot_com_scrapper import scrape_and_check_webnovel_dot_com
 from utils import open_in_file_explorer
 
@@ -41,6 +43,15 @@ def request(index: int, total: int, novel: Path, failed_requests: list):
     if request_status is not None:
         failed_requests.append({"novel": novel.name, "status": request_status, "path": novel, "reason": request_status})
     time.sleep(2.5)
+
+
+@app.command("re-dl")
+def re_download(
+    absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
+):
+    novels_to_re_download = check_all_novels_count(absolute_root)
+    re_download_all(novels_to_re_download)
+
 
 @app.command("check-sus")
 def check_all_novels_chapters(

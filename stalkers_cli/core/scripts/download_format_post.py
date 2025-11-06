@@ -98,17 +98,21 @@ def download_format_post(response: dict, absolute_root: Path):
 
         output_folder = root_path / OUTPUT_FOLDER_NAME
 
-        format_updates = typer.confirm("Format updates?", default=True)
-        if format_updates:
-            format = Format(root_path=root_path, output_folder=output_folder)
-            format.execute_range(range=(start_index, end_index))
+        # format_updates = typer.confirm("Format updates?", default=True)
+        # if format_updates:
+        format = Format(root_path=root_path, output_folder=output_folder)
+        format.execute_range(range=(start_index, end_index))
+
+        proceed_request = True
+
+        if format.sus_chapters_count > 0:
+            print(f"[yellow]Update has [red]{format.sus_chapters_count}[/red] SUS chapters[/yellow]")
             open_in_file_explorer(format.output_folder, default=False)
-
-            post_updates = typer.confirm("Post updates?", default=True)
-            if post_updates:
-                client = Client()
-                client.post_chapter_in_bulk_request(chapters_file=format.output_file, novel_slug=novel_slug)
-
+            proceed_request = typer.confirm(f"Proceed with POST Request?", default=True)
+            
+        if proceed_request:
+            client = Client()
+            client.post_chapter_in_bulk_request(chapters_file=format.output_file, novel_slug=novel_slug)
 
 
 def all(responses: list[dict], absolute_root: Path):
@@ -118,19 +122,12 @@ def all(responses: list[dict], absolute_root: Path):
         novel_slug = response.get("slug")
         start_index = response.get("from")
         end_index = response.get("to")
-        download_src = response.get("source")
         total = end_index-start_index
-
-        download_next = typer.confirm(
-            f"[{index+1}/{len(responses)}] Download updates for novel {novel_slug} from source: {download_src}?",
-            default=True,
-        )
-
-        if not download_next:
-            continue
         
         print(
-            f"[green]Downloading updates [yellow]({start_index} ~ {end_index} [{total+1}])[/yellow] for: [/green][blue]{novel_slug}[/blue]"
+            f"[green][{index+1}/{len(responses)}] Downloading updates [yellow]({start_index} ~ {end_index} [{total+1}])[/yellow] for: [/green][blue]{novel_slug}[/blue]"
         )
 
         download_format_post(response, absolute_root)
+        
+        print("\n")

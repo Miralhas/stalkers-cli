@@ -13,11 +13,13 @@ class Format:
     output_folder: ClassVar[Path]
     chapters_data: ClassVar[List]
     output_file: ClassVar[Path]
+    sus_chapters_count: ClassVar[int]
 
     def __init__(self, root_path: Path, output_folder=Path):
         self.downloaded_chapters_folder = Path(f"{root_path}/json")
         self.output_folder = output_folder
         self.chapters_data = []
+        self.sus_chapters_count = 0
 
 
     def __dump_chapters_array(self):
@@ -44,8 +46,9 @@ class Format:
             chapter_id = chapter_data.get("id")
             chapter_number = chapter_id
 
-            self.__body_validation(chapter_file, chapter_body, chapter_id)
+            is_sus = self.__body_validation(chapter_file, chapter_id)
 
+            self.sus_chapters_count += int(is_sus)
 
             self.chapters_data.append(
                 {
@@ -62,6 +65,7 @@ class Format:
         Load the requested range of chapters, sanitize them up, validate them and put them in an array.
         """
         initial_range, final_Range = range
+
         for chapter_file in self.downloaded_chapters_folder.glob("*.json"):
             chapter_data = load_json(chapter_file)
             chapter_id = chapter_data.get("id")
@@ -70,7 +74,9 @@ class Format:
                 chapter_title = chapter_data.get("title")
                 chapter_body = self.__sanitize_body(html=chapter_data.get("body"), chapter_title=chapter_title)
 
-                self.__body_validation(chapter_file, chapter_body, chapter_id)
+                is_sus = self.__body_validation(chapter_file, chapter_id)
+
+                self.sus_chapters_count += int(is_sus)
 
                 self.chapters_data.append(
                 {
@@ -80,16 +86,19 @@ class Format:
                     "body": chapter_body,
                 }
             )
+        
 
-
-    def __body_validation(self, chapter_file: Path, body: str, chapter_id: int):
+    def __body_validation(self, chapter_file: Path, chapter_id: int):
         """
         Sometimes, the chapter is null or has less text than it should. 
-        If so, a warning print will be executed
+        If so, a warning print will be executed and the function will return if the chapter is sus or no.
         """
         file_size_kb = chapter_file.stat().st_size / 1024
-        if body is None or len(body) < 50 or file_size_kb < 1.5:
+        if file_size_kb < 1.5:
             print(f"[bold red]Chapter of id {chapter_id} is suspicious[/bold red]")
+            return True
+
+        return False
 
 
 

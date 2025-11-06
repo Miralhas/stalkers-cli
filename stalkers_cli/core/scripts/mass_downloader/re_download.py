@@ -4,6 +4,8 @@ import subprocess
 
 from stalkers_cli.utils import load_json
 from rich import print
+import questionary
+from questionary import Choice
 
 slugs = [
     "beast-world-i-became-the-little-villains-mommy",
@@ -54,7 +56,7 @@ def execute_lncrawl(source: str, output_path: Path):
 
     subprocess.run(cmd)
 
-def all(root_path: Path):
+def re_download_by_root(root_path: Path):
     for novel in list(root_path.iterdir()):
         if novel.is_dir():
             src = get_source(novel)
@@ -62,6 +64,20 @@ def all(root_path: Path):
                 print(f"\n[green]{novel.name}[/green]")
                 execute_lncrawl(src, novel)
 
+
+def re_download_all(novels: list[Path]):
+    novels_to_re_download = questionary.checkbox(
+        f"\n\nNovels to be re-downloaded [{len(novels)}]",
+        choices=[Choice(title=novel.name, value=novel, checked=True) for novel in novels],
+    ).ask()
+
+    for index, novel in enumerate(novels_to_re_download):
+        src = get_source(novel)
+        if src is not None:
+            print(f"\n[bright_white][{index+1}/{len(novels_to_re_download)}] Re-downloading[/bright_white][green] {novel.name}[/green]")
+            execute_lncrawl(src, novel)
+
+
 if __name__ == "__main__":
     root = Path(r'C:\Users\bob\Desktop\mass_download\webnoveldotcom\bi-annual')
-    all(root)
+    re_download_by_root(root)

@@ -11,9 +11,6 @@ from rich.progress import (BarColumn, MofNCompleteColumn, Progress, TextColumn,
                            TimeElapsedColumn, TimeRemainingColumn)
 from rich.table import Table
 
-from stalkers_cli.core.scripts.mass_downloader.novel_updates_slug_scrapper import \
-    scrape_and_check
-
 AVAILABLE_SOURCES = [
     # {"name": "novelfull.me", "src": "https://novelfull.me", "hasHtmlSuffix": False}, # morreu
     {"name": "wuxia.city", "src": "https://wuxia.city/book", "hasHtmlSuffix": False},

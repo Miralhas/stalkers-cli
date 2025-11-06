@@ -55,10 +55,12 @@ class Client():
     @timer(name="PUT Novel Cover")
     def __put_cover(self, novel_slug: str, root_path: Path):
         url = f"{self.base_url}/novels/{novel_slug}/image"
-        image_path = f"{root_path}/cover.jpg"
+        
+        image_path = list(root_path.rglob("cover.*"))[0]
+        image_extension = image_path.suffix
 
         files = [
-            ('file',(f'{novel_slug}_cover.jpeg', open(image_path, 'rb'),'image/jpeg'))
+            ('file',(f'{novel_slug}_cover{image_extension}', open(image_path, 'rb'), f'image/{image_extension.removeprefix(".")}'))
         ]
         payload = {'description': f'{novel_slug} cover'}
 
@@ -200,6 +202,25 @@ class Client():
             print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
 
 
+    def novel_cover(self, root_path: Path, novel_slug: str):
+        try:
+            r = self.__put_cover(root_path=root_path, novel_slug=novel_slug)
+            pprint(r.json(), indent_guides=True)
+            r.raise_for_status()
+            
+            return True
+
+        except requests.HTTPError as ex:
+            print(f"[bold red]Failed with a response code of [italic red]'{r.status_code}'[/italic red]![/bold red] [red]\n{r.json()}[/red]")
+            return False
+        except requests.Timeout:
+            print("[bold red]Faile because request timed out![/bold red]")
+            return False
+        except Exception as e:
+            print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
+            return False
+
+
     def novel_request(self, novel_file: Path, root_path:Path, with_image: bool):        
         try:
             if not novel_file.exists():
@@ -216,15 +237,15 @@ class Client():
                 pprint(r.json(), indent_guides=True)
                 r.raise_for_status()
             
-            return True
+            return None
 
         except requests.HTTPError as ex:
             print(f"[bold red]Failed with a response code of [italic red]'{r.status_code}'[/italic red]![/bold red] [red]\n{r.json()}[/red]")
-            return False
-        except requests.Timeout:
+            return r.json()["detail"]
+        except requests.Timeout as ex:
             print("[bold red]Faile because request timed out![/bold red]")
-            return False
-        except Exception as e:
-            print(f"[bold red]Something went wrong![/bold red] \n[red]{e}[/red]")
-            return False
+            return "Timeout"
+        except Exception as ex:
+            print(f"[bold red]Something went wrong![/bold red] \n[red]{ex}[/red]")
+            return ex
         

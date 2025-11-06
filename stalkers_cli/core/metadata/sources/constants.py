@@ -10,6 +10,7 @@ GENRES = [
     "gender bender",
     "harem",
     "historical",
+    "history",
     "horror",
     "josei",
     "martial arts",
@@ -36,5 +37,7 @@ GENRES = [
     "yaoi",
     "yuri",
     "games",
-    "war"
+    "war",
+    "urban",
+    "eastern"
 ]

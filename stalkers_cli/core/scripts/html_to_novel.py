@@ -5,7 +5,7 @@ import nh3
 from bs4 import BeautifulSoup
 from rich import print
 
-from stalkers_cli.utils import ALLOWED_TAGS, OUTPUT_FOLDER_NAME, dump_json
+from stalkers_cli.utils import ALLOWED_TAGS, OUTPUT_FOLDER_NAME, dump_json, load_json
 
 
 def parse_html(html_path: Path):
@@ -58,6 +58,23 @@ def dump_chapters_json(output_folder: Path, chapters: list[str]):
     dump_json(output_path=output_file, data=chapters_dict)
 
 
+def dump_novel_json(output_folder: Path, title: str, author: str):
+    novel_file = output_folder / "novel.json"
+    chapters_file = output_folder / "chapters.json"
+
+    chapters = load_json(chapters_file)
+    novel_dict = {
+        "title": title,
+        "author": author,
+        "status": "COMPLETED",
+        "description": "",
+        "genres": [], 
+        "tags": [],
+        "chapters": chapters
+    }
+
+    dump_json(output_path=novel_file, data=novel_dict)
+
 def merge_books(root_path: Path):
     full_book = ""
     for book in root_path.glob("book*.html"):
@@ -68,7 +85,7 @@ def merge_books(root_path: Path):
 
 
 if __name__ == "__main__":
-    root_path = Path(r'C:\Users\bob\Downloads\furia-vermelha')
+    root_path = Path(r'C:\Users\bob\Desktop\super-powereds-year-1')
     output_folder = Path(f"{root_path}/{OUTPUT_FOLDER_NAME}")
     output_folder.mkdir(parents=True, exist_ok=True)
 
@@ -76,6 +93,7 @@ if __name__ == "__main__":
     html_path = root_path / "full.html"
 
     html_str = parse_html(html_path)
-    chapters = get_chapters(html_str, chapter_container_className="chapter-element")
+    chapters = get_chapters(html_str, chapter_container_className="mbppagebreak")
 
     dump_chapters_json(output_folder=output_folder, chapters=chapters)
+    # dump_novel_json(output_folder=output_folder, title="Super Powereds: Year 1", author="Drew Hayes")

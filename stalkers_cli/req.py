@@ -62,6 +62,16 @@ def bulk_edit_chapters(
     chapters_file = Path(f"{ctx.obj.output_folder}/{filename}")
     client.put_chapter_in_bulk_request(chapters_file=chapters_file, novel_slug=novel_slug)
 
+@app.command("cover", help="PUT novel cover")
+def put_cover(
+    ctx: typer.Context,
+    novel_slug: Annotated[str, typer.Option('--novel-slug', '-s', help=OPTIONS_HELP_TEXT["novel-slug"], prompt="Novel Slug")] = None,
+):
+    root = ctx.obj.root
+    
+    client = Client()
+    client.novel_cover(novel_slug=novel_slug, root_path=root)
+    
 
 if __name__ == "__main__":
     app()

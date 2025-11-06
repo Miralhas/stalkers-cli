@@ -11,21 +11,21 @@ from rich.progress import (BarColumn, MofNCompleteColumn, Progress, TextColumn,
                            TimeElapsedColumn, TimeRemainingColumn)
 from rich.table import Table
 
-from stalkers_cli.core.scripts.mass_downloader.slug_scrapper import \
+from stalkers_cli.core.scripts.mass_downloader.novel_updates_slug_scrapper import \
     scrape_and_check
 
 AVAILABLE_SOURCES = [
-    # {"name": "novlove.com", "src": "https://novlove.com/novel", "hasHtmlSuffix": False},
-    {"name": "novelfull.me", "src": "https://novelfull.me", "hasHtmlSuffix": False},
+    # {"name": "novelfull.me", "src": "https://novelfull.me", "hasHtmlSuffix": False}, # morreu
     {"name": "wuxia.city", "src": "https://wuxia.city/book", "hasHtmlSuffix": False},
     {"name": "wuxia.click", "src": "https://wuxia.click/novel", "hasHtmlSuffix": False},
     {"name": "novels.pl", "src": "https://www.novels.pl/novel", "hasHtmlSuffix": False},
-    {"name": "novgo.net", "src": "https://novgo.net", "hasHtmlSuffix": True},
+    {"name": "novlove.com", "src": "https://novlove.com/novel", "hasHtmlSuffix": False},
     {"name": "www.allnovel.org", "src": "https://www.allnovel.org", "hasHtmlSuffix": True},
     {"name": "allnovel.org", "src": "https://allnovel.org", "hasHtmlSuffix": True},
     {"name": "allnovelfull.net", "src": "https://allnovelfull.net", "hasHtmlSuffix": True},
-    {"name": "allnovelfull.com", "src": "https://allnovelfull.com", "hasHtmlSuffix": True},
     {"name": "novelnext.com", "src": "https://novelnext.com/books", "hasHtmlSuffix": False},
+    {"name": "novgo.net", "src": "https://novgo.net", "hasHtmlSuffix": True},
+    {"name": "allnovelfull.com", "src": "https://allnovelfull.com", "hasHtmlSuffix": True},
 ]
 
 progress_bar = Progress(
@@ -139,6 +139,9 @@ def execute_lncrawl(source: dict, output_path: Path):
 
     subprocess.run(cmd, capture_output=True, text=True, cwd=base_dir)
 
+def create_uri_file(uri: str, path: Path):
+    with open(path / "uri.txt", "w") as f:
+        f.write(uri)
 
 def download_single_novel(novel, root_path: Path):
     try:
@@ -146,7 +149,12 @@ def download_single_novel(novel, root_path: Path):
         source = get_downloadable_source(sources)
         if source is not None:
             output_path = root_path / source["slug"]
+            uri = novel.get("uri", None)
             execute_lncrawl(source, output_path)
+            
+            if uri is not None:
+                create_uri_file(uri, output_path)
+
             return {
                 "slug": source["slug"],
                 "status": "SUCCESS",

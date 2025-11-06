@@ -9,6 +9,7 @@ from core.scripts import (execute_ongoing_updates, execute_ps1_script,
 from questionary import Choice
 from rich import print
 from typing_extensions import Annotated
+from stalkers_cli.core.scripts.mass_downloader.webnovel_dot_com_scrapper import scrape_and_check_webnovel_dot_com
 from utils import open_in_file_explorer
 
 from stalkers_cli.core import all, check_sus
@@ -16,7 +17,7 @@ from stalkers_cli.core.scripts.mass_downloader.downloader import \
     download_novels
 from stalkers_cli.core.scripts.mass_downloader.format_all_novels_inside_folder import \
     format_and_post
-from stalkers_cli.core.scripts.mass_downloader.slug_scrapper import \
+from stalkers_cli.core.scripts.mass_downloader.novel_updates_slug_scrapper import \
     scrape_and_check
 from stalkers_cli.utils.helpers import dict_to_xlsx
 
@@ -34,11 +35,21 @@ OPTIONS_HELP_TEXT = {
     "workers": "Number of threads to be used for download"
 }
 
+def request(index: int, total: int, novel: Path, failed_requests: list):
+    print(f"\n[yellow][{index+1}/{total}][/yellow]: [green]Formating and posting:[/green] [bright_white]{novel.name}[bright_white]")
+    request_status  = format_and_post(novel)
+    if request_status is not None:
+        failed_requests.append({"novel": novel.name, "status": request_status, "path": novel, "reason": request_status})
+    time.sleep(2.5)
+
 @app.command("check-sus")
 def check_all_novels_chapters(
     absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
 ):
     sus_folders = check_sus(absolute_root)
+    
+    if (not sus_folders):
+        return
 
     folders_to_delete = questionary.checkbox(
         f"\n\nFolders to delete [{len(sus_folders)}]",
@@ -64,26 +75,23 @@ def fpost(
     selected_paths = [Path(path) for path in selected_paths]
 
     failed_requests = []
+    
     for index, novel in enumerate(selected_paths):
-        print(f"\n[yellow][{index+1}/{len(selected_paths)}][/yellow]: [green]Formating and posting:[/green] [bright_white]{novel.name}[bright_white]")
-        request_status = format_and_post(novel)
-        if not request_status:
-            failed_requests.append({"novel": novel.name, "status": request_status, "path": novel})
-        time.sleep(5)
+        request(index=index, total=len(selected_paths), novel=novel, failed_requests=failed_requests)
 
-    if len(failed_requests) > 0:
-        failed_requests = questionary.checkbox(
+    while len(failed_requests) > 0:
+        failed_requests_checkbox = questionary.checkbox(
             f"\n\nFailed Requests [{len(failed_requests)}]",
-            choices=[Choice(title=req["novel"], value=req["path"], checked=True, description="RETRY REQUEST") for req in failed_requests]
+            choices=[Choice(title=f'{req["novel"]}: {req["reason"]}', value=req["path"], checked=True) for req in failed_requests]
         ).ask()
+        
+        failed_requests.clear()
 
-        for index, novel in enumerate(failed_requests):
-            print(f"\n[yellow][{index+1}/{len(selected_paths)}][/yellow]: [green]Formating and posting:[/green] [bright_white]{novel.name}[bright_white]")
-            request_status = format_and_post(novel)
-            time.sleep(5)
+        for index, novel in enumerate(failed_requests_checkbox):
+            request(index=index, total=len(failed_requests_checkbox), novel=novel, failed_requests=failed_requests)
     
 
-@app.command("dl", help="Scrape novel slugs on novelupdates.com and download them")
+@app.command("dl-nu", help="Scrape novel slugs on novelupdates.com and download them")
 def mass_downloader(
     novel_updates_href: Annotated[str, typer.Option('--href', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
     output: Annotated[Path,typer.Option("--output", "-o", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="output")] = None,
@@ -94,6 +102,19 @@ def mass_downloader(
     output.mkdir(parents=True, exist_ok=True)
     novels = sorted(scrape_and_check(novel_updates_href, end_page=end, start_page=start), key=lambda novel: novel["slug"])
     responses =  download_novels(novels, output, workers)
+    dict_to_xlsx(responses, output, "mass_download_report")
+
+
+@app.command("dl-wn", help="Scrape novel slugs on webnovel.com and download them")
+def mass_downloader(
+    href: Annotated[str, typer.Option('--href', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
+    output: Annotated[Path,typer.Option("--output", "-o", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="output")] = None,
+    workers: Annotated[int, typer.Option('--workers', '-w', help=OPTIONS_HELP_TEXT["workers"])] = 3,
+    max: Annotated[int, typer.Option('--max', '-m', help=OPTIONS_HELP_TEXT["end"], prompt="end page")] = None,
+):
+    output.mkdir(parents=True, exist_ok=True)
+    novels = sorted(scrape_and_check_webnovel_dot_com(href, max), key=lambda novel: novel["slug"])
+    responses = download_novels(novels, output, workers)
     dict_to_xlsx(responses, output, "mass_download_report")
 
 
@@ -122,7 +143,7 @@ def generate_chapters_download_list_script(
     open_in_file_explorer(root)
 
 
-@app.command("updates", help="")
+@app.command("updates", help="Check all ongoing novels for chapter updates")
 def ongoing_updates(
     absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
     workers: Annotated[int, typer.Option('--workers', '-w', help=OPTIONS_HELP_TEXT["workers"])] = 5,

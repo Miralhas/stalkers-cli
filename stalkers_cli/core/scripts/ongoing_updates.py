@@ -18,6 +18,7 @@ from stalkers_cli.core import Client, Format
 from stalkers_cli.utils import load_json, dict_to_xlsx, timer
 
 MISMATCH_ERROR_MESSAGE = "Negative chapters to download. Source is mismatched!"
+NOVEL_NOT_STORED_LOCALLY = "Nove is not stored locally!"
 SOURCE_NONE_MESSAGE = "Source is None"
 UP_TO_DATE_MESSAGE = "Novel is up to date"
 NOVELS_STORAGE_PATH = Path(r"C:\Users\bob\Desktop\NovelOutput")
@@ -79,6 +80,11 @@ def build_response(
 def get_response(novel: list[dict], absolute_root: Path, index: int):
     title = novel.get("title")
     slug = novel.get("slug")
+
+    absolute_root_novels_slugs = [novel_path.name for novel_path in list(absolute_root.iterdir()) if novel_path.is_dir()]
+
+    if slug not in absolute_root_novels_slugs:
+        return {"slug": slug, "type": "ERROR", "message": MISMATCH_ERROR_MESSAGE}
 
     print(f"[green][{index+1}] Checking novel:[/green] [yellow]{title}[/yellow]")
 

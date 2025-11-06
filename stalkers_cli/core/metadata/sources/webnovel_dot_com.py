@@ -19,6 +19,9 @@ class WebnovelDotComSource(MetadataSource):
     def __init__(self, novel_uri: str, output_folder: Path):
         super().__init__(novel_uri=novel_uri, output_folder=output_folder)
         self.tags_map = {
+            "powerfulcouple": "powerful couple",
+            "royalfamily": "royalty",
+            "future": "futuristic setting",
             "weaktostrong": "weak to strong",
             "sliceoflife": "slice of life",
             "kingdombuilding": "kingdom building",
@@ -28,7 +31,37 @@ class WebnovelDotComSource(MetadataSource):
             "levelup": "level up",
             "sweetlove": "sweet love",
             "thestrongactingweak": "the strong acting weak",
-            "bloodpumping": "blood pumping"
+            "bloodpumping": "blood pumping",
+            "onenightstand": "one night stand",
+            "farming&business": "farming",
+            "fastpaced": "fast-paced",
+            "sweet": "sweet love",
+            "strongfl": "strong lead",
+            "advancedtechnology": "advanced technology",
+            "rarebloodline": "bloodlines",
+            "nocheats": "no cheats",
+            "faceslapping": "face slapping",
+            "mutation": "mutations",
+            "esports": "e-sports",
+            "singlefemalelead": "single female lead",
+            "righteous": "righteous protagonist",
+            "strongfemalelead": "strong female lead",
+            "multipleleads": "multiple lead characters",
+            "feelinggood": "feeling good",
+            "dailylife": "daily life",
+            "bigshot": "big shot",
+            "childhoodsweethearts": "childhood love",
+            "secretbaby": "secret baby",
+            "swordandmagic": "sword and magic",
+            "poortorich": "poor to rich",
+            "anotherworld": "another world",
+            "sidecharacter": "side character",
+            "enemiestolovers": "enemies become lovers",
+            "survivalgame": "survival game",
+            "hiddenidentities": "hiding identity",
+            "counterattack": "counter attack",
+            "simulationgame": "simulation",
+            "scifi": "sci-fi",
         }
         self.required_metadata_properties = ["og:title", "og:author", "og:tag"]
 
@@ -43,6 +76,7 @@ class WebnovelDotComSource(MetadataSource):
         """
         tags: List[str] = metadata_dict.get("tag").split(", ")
         tags = [tag.lower().strip() for tag in tags]
+        tags = filter(None, tags)
 
         # some tags on Webnovel.com don't have spacing between words. This is a mapping to those tags. "WEAKTOSTRONG" -> "Weak to Strong"
         tags = [
@@ -55,9 +89,6 @@ class WebnovelDotComSource(MetadataSource):
 
         metadata_dict["tags"] = tags
         del metadata_dict["tag"]
-
-        print(metadata_dict["genres"])
-        print(metadata_dict["tags"])
 
         metadata_dict["title"] = metadata_dict["title"].lower()
 

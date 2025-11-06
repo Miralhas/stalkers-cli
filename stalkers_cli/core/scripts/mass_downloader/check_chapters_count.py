@@ -6,6 +6,25 @@ from stalkers_cli.core import Client
 from stalkers_cli.utils import load_json
 from rich import print
 
+slugs = [
+    "beast-world-i-became-the-little-villains-mommy",
+    "black-quantiarch-the-progenitors-odyssey",
+    "carlottas-daily-report",
+    "cultivating-with-top-enlightenment",
+    "harem-startup-the-demon-billionaire-is-on-vacation",
+    "hero-or-villain-both",
+    "high-martial-arts-invincible-starts-from-basic-archery",
+    "imagination-system-i-can-build-anything",
+    "my-dragon-king-system",
+    "my-food-stall-serves-sss-grade-delicacies",
+    "reawakening-primordial-dragon-with-limitless-mana",
+    "reborn-as-the-failed-lord-with-my-resource-gathering-system",
+    "reincarnated-as-a-wonderkid",
+    "reincarnated-with-a-lucky-draw-system",
+    "the-mute-wife-who-brings-prosperity",
+    "zombie-apocalypse-i-have-safe-zone-superpower",
+]
+
 
 def get_novel_chapters_count_from_source(src_url: str):
     """
@@ -34,8 +53,8 @@ def downloaded_chapters_count(novel_path: Path) -> int:
 
 
 def all_novels(root_path:Path):
-    for novel in root_path.iterdir():
-        if novel.is_dir():
+    for novel in list(root_path.iterdir()):
+        if novel.is_dir() and novel.name in slugs:
             novel_dict = load_json(novel/"meta.json")
             url = novel_dict.get("novel").get("url")
             if url is not None:
@@ -67,5 +86,5 @@ def check_if_downloaded(root_path: Path):
 
 
 if __name__ == "__main__":
-    root_path = Path(r"C:\Users\bob\Desktop\rec_lists\antihero_122327")
+    root_path = Path(r"C:\Users\bob\Desktop\mass_download\webnoveldotcom\bi-annual")
     all_novels(root_path)

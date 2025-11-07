@@ -7,7 +7,8 @@ from stalkers_cli.core.metadata import MetadataSource
 from stalkers_cli.utils import OUTPUT_FOLDER_NAME, dump_json
 
 slugs = [
-   'beast-world-i-became-the-little-villains-mommy',
+'return-of-the-talentless-bastard',
+'summoning-players-into-my-game',
 ]
 
 def get_novel_source(novel_path: Path, output_folder: Path) -> MetadataSource:
@@ -51,5 +52,5 @@ def format_and_post(novel_path:Path):
 
 
 if __name__ == "__main__":
-    root_path = Path(r"C:\Users\bob\Desktop\mass_download\webnoveldotcom\bi-annual")
+    root_path = Path(r"C:\Users\bob\Desktop\NovelOutput")
     format_all(root_path)

@@ -45,7 +45,7 @@ def request(index: int, total: int, novel: Path, failed_requests: list):
     time.sleep(2.5)
 
 
-@app.command("re-dl")
+@app.command("re-dl", help="Re-download missing chapters from a novel.")
 def re_download(
     absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
 ):

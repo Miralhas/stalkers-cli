@@ -22,7 +22,7 @@ slugs = [
     "reincarnated-as-a-wonderkid",
     "reincarnated-with-a-lucky-draw-system",
     "the-mute-wife-who-brings-prosperity",
-    "zombie-apocalypse-i-have-safe-zone-superpower",
+    "zombie-apocalypse-i-have-safe-zone-superpower"
 ]
 
 
@@ -69,6 +69,8 @@ def check_novel_count(novel: Path, url: str):
 
 def check_all_novels_count(root_path:Path):
     novels = [novel for novel in root_path.iterdir() if novel.is_dir()]
+
+    print(f"\n[green]Checking {len(novels)} novels")
     
     novels_to_re_download: list[Path] = []
     for novel in novels:

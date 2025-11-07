@@ -7,62 +7,17 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from stalkers_cli.utils import dump_json
+from stalkers_cli.utils import dump_json, load_json
 from rich import print
 from selenium.webdriver.firefox.options import Options
 
 from .abstract_source import MetadataSource
 from .constants import GENRES
 
-
 class WebnovelDotComSource(MetadataSource):
     def __init__(self, novel_uri: str, output_folder: Path):
         super().__init__(novel_uri=novel_uri, output_folder=output_folder)
-        self.tags_map = {
-            "powerfulcouple": "powerful couple",
-            "royalfamily": "royalty",
-            "future": "futuristic setting",
-            "weaktostrong": "weak to strong",
-            "sliceoflife": "slice of life",
-            "kingdombuilding": "kingdom building",
-            "no-harem": "no harem",
-            "nonhuman": "non-human",
-            "sweetlove": "sweet love",
-            "levelup": "level up",
-            "sweetlove": "sweet love",
-            "thestrongactingweak": "the strong acting weak",
-            "bloodpumping": "blood pumping",
-            "onenightstand": "one night stand",
-            "farming&business": "farming",
-            "fastpaced": "fast-paced",
-            "sweet": "sweet love",
-            "strongfl": "strong lead",
-            "advancedtechnology": "advanced technology",
-            "rarebloodline": "bloodlines",
-            "nocheats": "no cheats",
-            "faceslapping": "face slapping",
-            "mutation": "mutations",
-            "esports": "e-sports",
-            "singlefemalelead": "single female lead",
-            "righteous": "righteous protagonist",
-            "strongfemalelead": "strong female lead",
-            "multipleleads": "multiple lead characters",
-            "feelinggood": "feeling good",
-            "dailylife": "daily life",
-            "bigshot": "big shot",
-            "childhoodsweethearts": "childhood love",
-            "secretbaby": "secret baby",
-            "swordandmagic": "sword and magic",
-            "poortorich": "poor to rich",
-            "anotherworld": "another world",
-            "sidecharacter": "side character",
-            "enemiestolovers": "enemies become lovers",
-            "survivalgame": "survival game",
-            "hiddenidentities": "hiding identity",
-            "counterattack": "counter attack",
-            "simulationgame": "simulation",
-            "scifi": "sci-fi",
-        }
+        self.tags_map = load_json(Path("stalkers_cli/utils/webnoveldotcom_tags_map.json"))
         self.required_metadata_properties = ["og:title", "og:author", "og:tag"]
 
     @property

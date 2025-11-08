@@ -14,7 +14,7 @@ from stalkers_cli.core.scripts.mass_downloader.re_download import re_download_al
 from stalkers_cli.core.scripts.mass_downloader.webnovel_dot_com_scrapper import scrape_and_check_webnovel_dot_com
 from utils import open_in_file_explorer
 
-from stalkers_cli.core import all, check_sus
+from stalkers_cli.core import all, check_sus, sync_novels
 from stalkers_cli.core.scripts.mass_downloader.downloader import \
     download_novels
 from stalkers_cli.core.scripts.mass_downloader.format_all_novels_inside_folder import \
@@ -43,6 +43,12 @@ def request(index: int, total: int, novel: Path, failed_requests: list):
     if request_status is not None:
         failed_requests.append({"novel": novel.name, "status": request_status, "path": novel, "reason": request_status})
     time.sleep(2.5)
+
+@app.command("sync", help="sync")
+def sync(
+    absolute_root: Annotated[Path,typer.Option("--absolute-root", "-ar", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="Root Folder", exists=True)] = None,
+):
+    sync_novels(absolute_root)
 
 
 @app.command("re-dl", help="Re-download missing chapters from a novel.")

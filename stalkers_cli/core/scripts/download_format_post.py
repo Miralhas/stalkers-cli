@@ -101,7 +101,7 @@ def download_format_post(response: dict, absolute_root: Path):
         # format_updates = typer.confirm("Format updates?", default=True)
         # if format_updates:
         format = Format(root_path=root_path, output_folder=output_folder)
-        format.execute_range(range=(start_index, end_index))
+        format.execute_ra7nge(range=(start_index, end_index))
 
         proceed_request = True
 
@@ -125,7 +125,7 @@ def all(responses: list[dict], absolute_root: Path):
         total = end_index-start_index
         
         print(
-            f"[green][{index+1}/{len(responses)}] Downloading updates [yellow]({start_index} ~ {end_index} [{total+1}])[/yellow] for: [/green][blue]{novel_slug}[/blue]"
+            f"[green][{index+1}/{len(responses)}] Downloading updates [yellow]({start_index} ~ {end_index} [{total+1}])[/yellow] for: [/green][bright_white]{novel_slug}[/bright_white]"
         )
 
         download_format_post(response, absolute_root)

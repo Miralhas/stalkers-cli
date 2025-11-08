@@ -52,18 +52,18 @@ def downloaded_chapters_count(novel_path: Path) -> int:
     return len(list(json_dir.iterdir()))
 
 
-def check_novel_count(novel: Path, url: str):
+def check_novel_count(novel: Path, url: str, index: int, total: int):
     try:
         source_chapters = get_novel_chapters_count_from_source(url)
         downloaded_count = downloaded_chapters_count(novel)
         if (downloaded_count != source_chapters):
-            print(f"[red]Chapters mismatch: {novel.name}")
+            print(f"[bright_white][{index+1}/{total}][/bright_white][red]Chapters mismatch: {novel.name}")
             return True
         else:
-            print(f"[green]Novel {novel.name} downloaded successfully!")
+            print(f"[bright_white][{index+1}/{total}][/bright_white][green]Novel {novel.name} downloaded successfully!")
             return False
     except:
-        print(f"[red]Couldn't extract chapters: {novel.name}")
+        print(f"[bright_white][{index+1}/{total}][/bright_white][red]Couldn't extract chapters: {novel.name}")
         return True
 
 
@@ -73,10 +73,11 @@ def check_all_novels_count(root_path:Path):
     print(f"\n[green]Checking {len(novels)} novels")
     
     novels_to_re_download: list[Path] = []
-    for novel in novels:
+    total = len(novels)
+    for index, novel in enumerate(novels):
         novel_dict = load_json(novel / "meta.json")
         url = novel_dict.get("novel").get("url")
-        if url is not None and check_novel_count(novel, url):
+        if url is not None and check_novel_count(novel, url, index, total):
             novels_to_re_download.append(novel)
 
     return novels_to_re_download

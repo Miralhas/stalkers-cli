@@ -75,6 +75,7 @@ def dump_novel_json(output_folder: Path, title: str, author: str):
 
     dump_json(output_path=novel_file, data=novel_dict)
 
+
 def merge_books(root_path: Path):
     full_book = ""
     for book in root_path.glob("book*.html"):
@@ -85,15 +86,15 @@ def merge_books(root_path: Path):
 
 
 if __name__ == "__main__":
-    root_path = Path(r'C:\Users\bob\Desktop\super-powereds-year-1')
+    root_path = Path(r'C:\Users\bob\Desktop\twig')
     output_folder = Path(f"{root_path}/{OUTPUT_FOLDER_NAME}")
     output_folder.mkdir(parents=True, exist_ok=True)
 
-    merge_books(root_path)
-    html_path = root_path / "full.html"
+    # merge_books(root_path)
+    html_path = root_path / "book.html"
 
     html_str = parse_html(html_path)
-    chapters = get_chapters(html_str, chapter_container_className="mbppagebreak")
+    chapters = get_chapters(html_str, chapter_container_className="block")
 
     dump_chapters_json(output_folder=output_folder, chapters=chapters)
-    # dump_novel_json(output_folder=output_folder, title="Super Powereds: Year 1", author="Drew Hayes")
+    dump_novel_json(output_folder=output_folder, title="Twig", author="Wildbow")

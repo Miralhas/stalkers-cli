@@ -1,4 +1,4 @@
-from ast import Dict, Raise, dump
+from ast import Dict, dump
 from pathlib import Path
 from typing import List
 
@@ -32,7 +32,7 @@ def book_all(output_folder: Path):
     novel_file = output_folder / "novel.json"
 
     if not metadata_file.exists() or not chapters_file.exists():
-        Raise("Metadata or chapters file doesn't exist!")
+        raise RuntimeError("Metadata or chapters file doesn't exist!")
 
     metadata = load_json(metadata_file)
     chapters = load_json(chapters_file)

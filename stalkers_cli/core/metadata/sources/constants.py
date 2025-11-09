@@ -39,5 +39,6 @@ GENRES = [
     "games",
     "war",
     "urban",
-    "eastern"
+    "eastern",
+    "book"
 ]

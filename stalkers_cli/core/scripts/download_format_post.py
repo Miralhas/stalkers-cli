@@ -101,7 +101,7 @@ def download_format_post(response: dict, absolute_root: Path):
         # format_updates = typer.confirm("Format updates?", default=True)
         # if format_updates:
         format = Format(root_path=root_path, output_folder=output_folder)
-        format.execute_ra7nge(range=(start_index, end_index))
+        format.execute_range(range=(start_index, end_index))
 
         proceed_request = True
 

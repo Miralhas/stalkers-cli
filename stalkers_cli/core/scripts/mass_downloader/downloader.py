@@ -136,9 +136,11 @@ def execute_lncrawl(source: dict, output_path: Path):
 
     subprocess.run(cmd, capture_output=True, text=True, cwd=base_dir)
 
+
 def create_uri_file(uri: str, path: Path):
     with open(path / "uri.txt", "w") as f:
         f.write(uri)
+
 
 def download_single_novel(novel, root_path: Path):
     try:

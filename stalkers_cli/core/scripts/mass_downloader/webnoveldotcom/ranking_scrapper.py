@@ -87,10 +87,10 @@ def check_slugs(novels: list[dict]) -> list[dict[str, str | bool]]:
     return responses
 
 
-def scrape_and_check_webnovel_dot_com(href: str, max: int):
+def scrape_and_check_webnovel_dot_com_ranking(href: str, max: int):
     novels = scrape(href, max=max)
     return check_slugs(novels)
 
 if __name__ == "__main__":
-    novels = scrape("https://www.webnovel.com/ranking/novel/all_time/power_rank", max=20)
+    novels = scrape("https://www.webnovel.com/ranking/novel/all_time/power_rank", max=100)
     resp = check_slugs(novels)

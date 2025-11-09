@@ -11,7 +11,8 @@ from rich import print
 from typing_extensions import Annotated
 from stalkers_cli.core.scripts.mass_downloader.check_chapters_count import check_all_novels_count
 from stalkers_cli.core.scripts.mass_downloader.re_download import re_download_all
-from stalkers_cli.core.scripts.mass_downloader.webnovel_dot_com_scrapper import scrape_and_check_webnovel_dot_com
+from stalkers_cli.core.scripts.mass_downloader.webnoveldotcom.novels_scrapper import NovelStatus, scrape_and_check_webnovel_dot_com
+from stalkers_cli.core.scripts.mass_downloader.webnoveldotcom.ranking_scrapper import scrape_and_check_webnovel_dot_com_ranking
 from utils import open_in_file_explorer
 
 from stalkers_cli.core import all, check_sus, sync_novels
@@ -34,7 +35,8 @@ OPTIONS_HELP_TEXT = {
     "sleep": "Sleep between downloads",
     "absolute_root": "Folder where all the novels are stored",
     "rec_list": "Link to a novelupdates novels list (E.g https://www.novelupdates.com/viewlist/126398/ || https://www.novelupdates.com/series-ranking/)",
-    "workers": "Number of threads to be used for download"
+    "workers": "Number of threads to be used for download",
+    "status": "NovelStatus [complete / ongoing]",
 }
 
 def request(index: int, total: int, novel: Path, failed_requests: list):
@@ -109,7 +111,7 @@ def fpost(
     
 
 @app.command("dl-nu", help="Scrape novel slugs on novelupdates.com and download them")
-def mass_downloader(
+def novelupdates_mass_downloader(
     novel_updates_href: Annotated[str, typer.Option('--href', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
     output: Annotated[Path,typer.Option("--output", "-o", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="output")] = None,
     workers: Annotated[int, typer.Option('--workers', '-w', help=OPTIONS_HELP_TEXT["workers"])] = 5,
@@ -122,15 +124,29 @@ def mass_downloader(
     dict_to_xlsx(responses, output, "mass_download_report")
 
 
-@app.command("dl-wn", help="Scrape novel slugs on webnovel.com and download them")
-def mass_downloader(
+@app.command("dl-wn-rk", help="Scrape novel slugs on webnovel.com ranking and download them")
+def webnoveldotcom_ranking_downloader(
     href: Annotated[str, typer.Option('--href', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
     output: Annotated[Path,typer.Option("--output", "-o", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="output")] = None,
     workers: Annotated[int, typer.Option('--workers', '-w', help=OPTIONS_HELP_TEXT["workers"])] = 3,
     max: Annotated[int, typer.Option('--max', '-m', help=OPTIONS_HELP_TEXT["end"], prompt="end page")] = None,
 ):
     output.mkdir(parents=True, exist_ok=True)
-    novels = sorted(scrape_and_check_webnovel_dot_com(href, max), key=lambda novel: novel["slug"])
+    novels = sorted(scrape_and_check_webnovel_dot_com_ranking(href, max), key=lambda novel: novel["slug"])
+    responses = download_novels(novels, output, workers)
+    dict_to_xlsx(responses, output, "mass_download_report")
+
+
+@app.command("dl-wn", help="Scrape novel slugs on webnovel.com and download them")
+def webnoveldotcom_downloader(
+    href: Annotated[str, typer.Option('--href', help=OPTIONS_HELP_TEXT["rec_list"], prompt=True)] = None,
+    output: Annotated[Path,typer.Option("--output", "-o", help=OPTIONS_HELP_TEXT["absolute_root"], prompt="output")] = None,
+    workers: Annotated[int, typer.Option('--workers', '-w', help=OPTIONS_HELP_TEXT["workers"])] = 3,
+    max: Annotated[int, typer.Option('--max', '-m', help=OPTIONS_HELP_TEXT["end"], prompt="max")] = None,
+    status: Annotated[NovelStatus, typer.Option('--status', '-s', help=OPTIONS_HELP_TEXT["end"], prompt="status")] = None,
+):
+    output.mkdir(parents=True, exist_ok=True)
+    novels = sorted(scrape_and_check_webnovel_dot_com(href, max, status), key=lambda novel: novel["slug"])
     responses = download_novels(novels, output, workers)
     dict_to_xlsx(responses, output, "mass_download_report")
 

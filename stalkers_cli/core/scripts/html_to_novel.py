@@ -14,7 +14,7 @@ def parse_html(html_path: Path):
 
 
 def sanitize(html: str):
-    clean_html = nh3.clean(html, tags=ALLOWED_TAGS)
+    clean_html = nh3.clean(html, tags=ALLOWED_TAGS - {"article", "section"})
     soup = BeautifulSoup(clean_html, "html.parser")
 
     for tag in soup.find_all():
@@ -35,7 +35,7 @@ def sanitize(html: str):
 def get_chapters(html: str, chapter_container_className: str):
     sanitized_chapters = []
     soup = BeautifulSoup(html, "html.parser")
-    chapters = soup.find_all("div", class_=[chapter_container_className])
+    chapters = soup.find_all(class_=[chapter_container_className])
     for index, chapter in enumerate(chapters):
         sanitized_chapters.append(sanitize(str(chapter)))
 
@@ -58,24 +58,6 @@ def dump_chapters_json(output_folder: Path, chapters: list[str]):
     dump_json(output_path=output_file, data=chapters_dict)
 
 
-def dump_novel_json(output_folder: Path, title: str, author: str):
-    novel_file = output_folder / "novel.json"
-    chapters_file = output_folder / "chapters.json"
-
-    chapters = load_json(chapters_file)
-    novel_dict = {
-        "title": title,
-        "author": author,
-        "status": "COMPLETED",
-        "description": "",
-        "genres": [], 
-        "tags": [],
-        "chapters": chapters
-    }
-
-    dump_json(output_path=novel_file, data=novel_dict)
-
-
 def merge_books(root_path: Path):
     full_book = ""
     for book in root_path.glob("book*.html"):
@@ -85,16 +67,23 @@ def merge_books(root_path: Path):
         html_file.write(full_book)
 
 
+def extract_chapters(output: Path, container_className: str):
+    book = output.parent / "formatted.html"
+    html_str = parse_html(book)
+    chapters = get_chapters(html_str, chapter_container_className=container_className)
+
+    dump_chapters_json(output_folder=output, chapters=chapters)
+
+
 if __name__ == "__main__":
-    root_path = Path(r'C:\Users\bob\Desktop\twig')
+    root_path = Path(r'C:\Users\bob\Desktop\blackflame')
     output_folder = Path(f"{root_path}/{OUTPUT_FOLDER_NAME}")
     output_folder.mkdir(parents=True, exist_ok=True)
 
     # merge_books(root_path)
-    html_path = root_path / "book.html"
+    html_path = root_path / "formatted.html"
 
     html_str = parse_html(html_path)
     chapters = get_chapters(html_str, chapter_container_className="block")
 
     dump_chapters_json(output_folder=output_folder, chapters=chapters)
-    dump_novel_json(output_folder=output_folder, title="Twig", author="Wildbow")

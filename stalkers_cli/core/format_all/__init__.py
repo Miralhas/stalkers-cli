@@ -1,1 +1,1 @@
-from .main import execute_metadata_and_format
+from .main import execute_metadata_and_format, book_all

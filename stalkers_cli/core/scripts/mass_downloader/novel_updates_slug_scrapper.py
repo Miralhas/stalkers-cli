@@ -97,7 +97,7 @@ def check_slugs(slugs: list[str]) -> list[dict[str, str | bool]]:
     responses = []
 
     with progress_bar as p:
-        print("\n[bold green]Checking slugs...[/bold green]")
+        print("\n[bold green]Formating Book HTML...[/bold green]")
         for value in p.track(range(len(slugs))):
             res = client.check_novel_slug(slugs[value])
             slug_exists = res.get("exists", False)

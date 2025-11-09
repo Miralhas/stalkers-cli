@@ -3,3 +3,5 @@ from .ongoing_updates import execute_ongoing_updates
 from .download_format_post import download_format_post, all
 from .check_sus import check_sus
 from .sync_backend_and_storage import sync_novels
+from .format_html import format_book
+from .html_to_novel import extract_chapters

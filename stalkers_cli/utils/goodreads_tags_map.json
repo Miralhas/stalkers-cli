@@ -1,0 +1,7 @@
+{
+    "blacklist": ["audiobook", "book club"],
+    "mapper": {
+        "science fiction fantasy": "sci-fi fantasy",
+        "science fiction": "sci-fi"
+    }
+}
